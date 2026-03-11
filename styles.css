@@ -77,7 +77,8 @@ textarea { min-height: 96px; resize: vertical; }
 
 .tab-content { display: none; padding: 20px; }
 .tab-content.active { display: block; }
-.grid-home { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; }
+.grid-home { grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; }
+.tab-content.active.grid-home { display: grid; }
 .panel-lg, .panel-md { padding: 20px; }
 .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
 .panel-head.compact { align-items: flex-start; }
