@@ -133,7 +133,9 @@ function renderNearby(list) {
 }
 
 function renderTherapists() {
-  document.getElementById('serviceGrid').innerHTML = therapistData
+  const grid = document.getElementById('serviceGrid');
+  if (!grid) return;
+  grid.innerHTML = therapistData
     .map((t) => `<div class="service-card"><h3>${t.name}</h3><p>${t.skill}</p><p>${t.city} · ${t.price}</p><p>${t.door}</p><button class="pill-btn book-btn" data-name="${t.name}">预约上门理疗</button></div>`)
     .join('');
 }
@@ -430,7 +432,6 @@ function init() {
   renderList('knowledgeList', knowledgeData, '健康知识');
   renderList('sportsList', sportsData, '体育资讯');
   renderNearby(geoVideos.default);
-  renderTherapists();
   renderPosts();
   renderProfileData();
   syncUserUI();
