@@ -2,7 +2,6 @@ const tabs = document.querySelectorAll('.menu-item');
 const sections = document.querySelectorAll('.tab-content');
 
 const todayDate = document.getElementById('todayDate');
-const flowStatus = document.getElementById('flowStatus');
 const planGrid = document.getElementById('planGrid');
 const careText = document.getElementById('careText');
 const aiPlan = document.getElementById('aiPlan');
@@ -11,12 +10,20 @@ const locationHint = document.getElementById('locationHint');
 const watchTimer = document.getElementById('watchTimer');
 const restModal = document.getElementById('restModal');
 
+const calendarWeek = document.getElementById('calendarWeek');
+const calendarGrid = document.getElementById('calendarGrid');
+const checkinBtn = document.getElementById('checkinBtn');
+const checkinMinutes = document.getElementById('checkinMinutes');
+const checkinType = document.getElementById('checkinType');
+const checkinMsg = document.getElementById('checkinMsg');
+
 const state = {
   user: JSON.parse(localStorage.getItem('rehabUser') || 'null'),
   users: JSON.parse(localStorage.getItem('rehabUsers') || '[]'),
   posts: JSON.parse(localStorage.getItem('rehabPosts') || '[]'),
   favorites: JSON.parse(localStorage.getItem('rehabFavorites') || '[]'),
   history: JSON.parse(localStorage.getItem('rehabHistory') || '[]'),
+  checkins: JSON.parse(localStorage.getItem('rehabCheckins') || '[]'),
 };
 
 const knowledgeData = [
@@ -59,13 +66,6 @@ function save(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-function requireLogin(targetTab) {
-  if (targetTab === 'profile' || state.user) return false;
-  switchTab('profile');
-  document.getElementById('authMessage').textContent = '请先登录后再进入对应功能页面。';
-  return true;
-}
-
 function switchTab(tabId) {
   tabs.forEach((b) => b.classList.toggle('active', b.dataset.tab === tabId));
   sections.forEach((s) => s.classList.toggle('active', s.id === tabId));
@@ -76,13 +76,34 @@ function syncUserUI() {
   document.getElementById('welcomeName').textContent = name;
   document.getElementById('sideName').textContent = state.user?.username || '访客用户';
   document.getElementById('sideState').textContent = state.user ? '已登录' : '未登录';
-  flowStatus.textContent = state.user
-    ? `当前状态：已登录（${state.user.username}） -> 首页 -> 资讯中心。`
-    : '当前状态：未登录 -> 请先到个人中心注册或登录。';
 }
 
 function renderPlans(plans = defaultPlans) {
   planGrid.innerHTML = plans.map((p) => `<div class="plan-item"><h4>${p[0]}</h4><p>${p[1]}</p><small>${p[2]}</small></div>`).join('');
+}
+
+function renderCalendar() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const today = now.getDate();
+  const firstDay = new Date(y, m, 1);
+  const lastDate = new Date(y, m + 1, 0).getDate();
+  const weekLabels = ['一', '二', '三', '四', '五', '六', '日'];
+  calendarWeek.innerHTML = weekLabels.map((w) => `<div>${w}</div>`).join('');
+
+  const monthPrefix = `${y}-${String(m + 1).padStart(2, '0')}-`;
+  const doneDays = new Set(state.checkins.filter((c) => c.date.startsWith(monthPrefix)).map((c) => Number(c.date.slice(-2))));
+
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const cells = [];
+  for (let i = 0; i < startOffset; i += 1) cells.push('<div></div>');
+  for (let d = 1; d <= lastDate; d += 1) {
+    const isToday = d === today;
+    const isDone = doneDays.has(d);
+    cells.push(`<div class="day-cell ${isToday ? 'today' : ''} ${isDone ? 'done' : ''}"><div class="day-num">${d}</div><div class="day-mark"></div></div>`);
+  }
+  calendarGrid.innerHTML = cells.join('');
 }
 
 function renderList(elId, list, category) {
@@ -92,7 +113,6 @@ function renderList(elId, list, category) {
 }
 
 function addFavorite(item, category) {
-  if (!state.user) return;
   state.favorites.unshift({ item, category, time: new Date().toLocaleString('zh-CN') });
   state.favorites = state.favorites.slice(0, 30);
   save('rehabFavorites', state.favorites);
@@ -100,7 +120,6 @@ function addFavorite(item, category) {
 }
 
 function addHistory(item) {
-  if (!state.user) return;
   state.history.unshift(`${new Date().toLocaleTimeString('zh-CN')} ${item}`);
   state.history = state.history.slice(0, 30);
   save('rehabHistory', state.history);
@@ -109,7 +128,7 @@ function addHistory(item) {
 
 function renderNearby(list) {
   nearbyVideos.innerHTML = list
-    .map((v, i) => `<div class="video-card"><h4>${v.title}</h4><p>${v.area}</p><p>距离：${v.dist}</p><button class="hub-btn play-nearby" data-index="${i}" data-title="${v.title}">观看并记录</button></div>`)
+    .map((v) => `<div class="video-card"><h4>${v.title}</h4><p>${v.area}</p><p>距离：${v.dist}</p><button class="hub-btn play-nearby" data-title="${v.title}">观看并记录</button></div>`)
     .join('');
 }
 
@@ -164,23 +183,32 @@ window.addComment = (i) => {
 };
 
 tabs.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    if (requireLogin(btn.dataset.tab)) return;
-    switchTab(btn.dataset.tab);
-  });
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
 document.querySelectorAll('[data-tab-jump]').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const target = btn.dataset.tabJump;
-    if (requireLogin(target)) return;
-    switchTab(target);
-  });
+  btn.addEventListener('click', () => switchTab(btn.dataset.tabJump));
 });
 
 document.getElementById('searchBtn').addEventListener('click', () => {
   const keyword = document.getElementById('search').value.trim();
   addHistory(`搜索：${keyword || '（空）'}`);
+});
+
+checkinBtn.addEventListener('click', () => {
+  const minutes = checkinMinutes.value.trim();
+  const type = checkinType.value.trim();
+  if (!minutes || !type) {
+    checkinMsg.textContent = '请填写训练时长和训练类型后再打卡。';
+    return;
+  }
+  const d = new Date();
+  const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  state.checkins = state.checkins.filter((c) => c.date !== date);
+  state.checkins.push({ date, minutes, type, user: state.user?.username || '访客' });
+  save('rehabCheckins', state.checkins);
+  checkinMsg.textContent = `打卡成功：${type}，${minutes} 分钟。`;
+  renderCalendar();
 });
 
 document.getElementById('locateBtn').addEventListener('click', () => {
@@ -204,8 +232,7 @@ document.getElementById('locateBtn').addEventListener('click', () => {
 
 document.getElementById('nearbyVideos').addEventListener('click', (e) => {
   if (!e.target.classList.contains('play-nearby')) return;
-  const title = e.target.dataset.title;
-  addHistory(`观看附近视频：${title}`);
+  addHistory(`观看附近视频：${e.target.dataset.title}`);
   document.getElementById('rehabVideo').scrollIntoView({ behavior: 'smooth' });
 });
 
@@ -234,14 +261,8 @@ document.getElementById('registerBtn').addEventListener('click', () => {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value.trim();
   const msg = document.getElementById('authMessage');
-  if (!username || !password) {
-    msg.textContent = '请输入手机号/用户名和密码';
-    return;
-  }
-  if (state.users.find((u) => u.username === username)) {
-    msg.textContent = '用户已存在';
-    return;
-  }
+  if (!username || !password) return (msg.textContent = '请输入手机号/用户名和密码');
+  if (state.users.find((u) => u.username === username)) return (msg.textContent = '用户已存在');
   state.users.push({ username, password });
   save('rehabUsers', state.users);
   msg.textContent = '注册成功，请返回登录页面输入账号密码。';
@@ -252,10 +273,7 @@ document.getElementById('loginBtn').addEventListener('click', () => {
   const password = document.getElementById('password').value.trim();
   const msg = document.getElementById('authMessage');
   const user = state.users.find((u) => u.username === username && u.password === password);
-  if (!user) {
-    msg.textContent = '登录失败，请检查账号或密码';
-    return;
-  }
+  if (!user) return (msg.textContent = '登录失败，请检查账号或密码');
   state.user = { username };
   save('rehabUser', state.user);
   msg.textContent = `登录成功，欢迎 ${username}`;
@@ -268,13 +286,10 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem('rehabUser');
   document.getElementById('authMessage').textContent = '已退出登录';
   syncUserUI();
-  switchTab('profile');
 });
 
 document.body.addEventListener('click', (e) => {
-  if (e.target.classList.contains('collect-btn')) {
-    addFavorite(e.target.dataset.item, e.target.dataset.category);
-  }
+  if (e.target.classList.contains('collect-btn')) addFavorite(e.target.dataset.item, e.target.dataset.category);
   if (e.target.classList.contains('book-btn')) {
     const name = e.target.dataset.name;
     addHistory(`预约理疗师：${name}`);
@@ -304,22 +319,6 @@ setInterval(() => {
     warned = false;
   }
 }, 1000);
-
-function init() {
-  todayDate.textContent = new Date().toLocaleDateString('zh-CN');
-  renderPlans();
-  renderCareText();
-  renderList('knowledgeList', knowledgeData, '健康知识');
-  renderList('sportsList', sportsData, '体育资讯');
-  renderNearby(geoVideos.default);
-  renderTherapists();
-  renderPosts();
-  renderProfileData();
-  syncUserUI();
-  if (!state.user) switchTab('profile');
-}
-
-init();
 
 const aiFloatBtn = document.getElementById('aiFloatBtn');
 const aiFloatOverlay = document.getElementById('aiFloatOverlay');
@@ -354,7 +353,11 @@ function closeAiFloatPanel() {
   aiFloatOverlay.setAttribute('aria-hidden', 'true');
 }
 
-closeAiFloat.addEventListener('click', closeAiFloatPanel);
+closeAiFloat.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  closeAiFloatPanel();
+});
 aiFloatOverlay.addEventListener('click', (e) => {
   if (e.target === aiFloatOverlay) closeAiFloatPanel();
 });
@@ -392,22 +395,17 @@ function makeDraggable(handle, target, mode = 'free') {
     target.style.top = `${top}px`;
     target.style.right = 'auto';
     target.style.bottom = 'auto';
-
-    if (mode === 'button') {
-      target.dataset.dragged = '1';
-    }
   };
 
   const onUp = () => {
     dragging = false;
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', onUp);
-    if (mode === 'button' && !moved) {
-      openAiFloat();
-    }
+    if (mode === 'button' && !moved) openAiFloat();
   };
 
   handle.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.mini-close')) return;
     dragging = true;
     moved = false;
     startX = e.clientX;
@@ -423,3 +421,19 @@ function makeDraggable(handle, target, mode = 'free') {
 
 makeDraggable(aiFloatBtn, aiFloatBtn, 'button');
 makeDraggable(aiFloatDrag, aiFloatPanel, 'free');
+
+function init() {
+  todayDate.textContent = new Date().toLocaleDateString('zh-CN');
+  renderPlans();
+  renderCalendar();
+  renderCareText();
+  renderList('knowledgeList', knowledgeData, '健康知识');
+  renderList('sportsList', sportsData, '体育资讯');
+  renderNearby(geoVideos.default);
+  renderTherapists();
+  renderPosts();
+  renderProfileData();
+  syncUserUI();
+}
+
+init();

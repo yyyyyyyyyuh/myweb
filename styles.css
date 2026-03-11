@@ -230,3 +230,44 @@ h3 { margin: 0 0 8px; }
 .ai-float-input textarea {
   min-height: 72px;
 }
+
+
+.calendar-week,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.calendar-week { margin-bottom: 8px; color: var(--muted); font-size: 13px; }
+.calendar-week div,
+.calendar-grid .day-cell { text-align: center; }
+.day-cell {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 4px;
+  background: #fff;
+}
+.day-num { font-weight: 700; }
+.day-mark {
+  margin: 6px auto 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d9d9d9;
+}
+.day-cell.today .day-mark { background: #333; }
+.day-cell.done .day-mark { background: var(--accent); }
+.calendar-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; background:#d9d9d9; }
+.dot.today { background:#333; }
+.dot.done { background: var(--accent); }
+
+.checkin-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ai-float-panel { pointer-events: auto; }
+.mini-close { position: relative; z-index: 2; }

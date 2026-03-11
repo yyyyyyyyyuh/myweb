@@ -48,19 +48,26 @@
         <section id="home" class="tab-content active grid-home">
           <article class="card panel-lg">
             <div class="panel-head">
-              <h2>启动逻辑面板</h2>
+              <h2>Your Training Days</h2>
               <span id="todayDate"></span>
             </div>
-            <div id="flowStatus" class="notice"></div>
-            <div class="flow-grid">
-              <div class="flow-item">① 启动应用</div>
-              <div class="flow-item">② 检查是否登录</div>
-              <div class="flow-item">③ 未登录 -> 进入注册/登录</div>
-              <div class="flow-item">④ 已登录 -> 进入首页/资讯中心</div>
+            <p class="notice">点击下方“今日打卡”后，当天日期会标记为黄色。</p>
+            <div class="calendar-week" id="calendarWeek"></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="calendar-legend">
+              <span><i class="dot today"></i>今天</span>
+              <span><i class="dot done"></i>已打卡</span>
             </div>
           </article>
 
           <article class="card panel-md">
+            <h2>今日训练打卡</h2>
+            <div class="checkin-form">
+              <input id="checkinMinutes" type="number" min="1" max="300" placeholder="训练时长（分钟）" />
+              <input id="checkinType" placeholder="训练类型（如：核心训练）" />
+              <button id="checkinBtn" class="pill-btn">今日打卡</button>
+            </div>
+            <p id="checkinMsg" class="notice"></p>
             <h2>今日康复计划</h2>
             <div class="plan-grid" id="planGrid"></div>
           </article>
