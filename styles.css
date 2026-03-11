@@ -1,0 +1,137 @@
+:root {
+  --bg: #f3efed;
+  --card: #fcfbfa;
+  --text: #2b2928;
+  --muted: #777270;
+  --accent: #f0c85f;
+  --line: #e8e1dc;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-shell {
+  max-width: 1360px;
+  margin: 24px auto;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+
+.sidebar { padding: 18px 14px; display: flex; flex-direction: column; }
+.brand { font-size: 24px; font-weight: 800; margin: 8px 10px 20px; }
+.menu { display: grid; gap: 8px; }
+.menu-item {
+  border: none;
+  border-radius: 999px;
+  text-align: left;
+  padding: 11px 14px;
+  font-size: 15px;
+  background: transparent;
+  cursor: pointer;
+  color: #595654;
+}
+.menu-item.active { background: var(--accent); color: #fff; font-weight: 700; }
+.profile-mini { margin-top: auto; border-top: 1px dashed var(--line); padding: 12px; }
+.profile-mini h4, .profile-mini p { margin: 0; }
+.profile-mini p { color: var(--muted); font-size: 13px; }
+
+.main { display: grid; gap: 16px; }
+.topbar { padding: 20px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.topbar h1 { margin: 0; }
+.topbar p { margin: 4px 0 0; color: var(--muted); }
+.search-row { display: flex; gap: 8px; width: min(460px, 100%); }
+
+input, textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  background: #fff;
+}
+textarea { min-height: 96px; resize: vertical; }
+
+.pill-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  cursor: pointer;
+}
+.pill-btn.ghost { background: #888684; }
+
+.tab-content { display: none; padding: 20px; }
+.tab-content.active { display: block; }
+.grid-home { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+.panel-lg, .panel-md { padding: 20px; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.panel-head.compact { align-items: flex-start; }
+h2 { margin: 0 0 12px; font-size: 28px; }
+h3 { margin: 0 0 8px; }
+
+.notice { color: #625f5d; margin: 6px 0 12px; }
+.flow-grid { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 10px; }
+.flow-item, .plan-item, .post-item, .video-card, .service-card, .shop-item, .inset {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  padding: 10px 12px;
+}
+.plan-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.info-hub { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.hub-btn {
+  border: 1px solid #f1d998;
+  background: #fff9e8;
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+}
+.simple-list { display: grid; gap: 10px; color: #4e4b4a; }
+
+.video-list { display: grid; gap: 10px; margin-bottom: 12px; }
+.video-card p { margin: 4px 0; color: var(--muted); }
+.assistant-box { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+.ai-response { margin-top: 10px; color: #464342; line-height: 1.6; }
+
+.post-editor { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 12px; }
+.post-meta { color: var(--muted); font-size: 13px; display: flex; gap: 10px; margin: 6px 0; }
+.post-actions { display: flex; gap: 8px; }
+.post-actions button { border: none; background: #fff8e2; border-radius: 999px; padding: 6px 10px; cursor: pointer; }
+.comment-row { display: flex; gap: 8px; margin-top: 8px; }
+.comment-row input { flex: 1; }
+
+.service-grid, .shop-grid, .profile-panels { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.auth-grid { display: grid; gap: 10px; max-width: 420px; margin-bottom: 12px; }
+.auth-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.hidden { display: none; }
+.modal-card { width: min(420px, 92vw); background: #fff; border-radius: 14px; padding: 20px; }
+
+@media (max-width: 1080px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .grid-home { grid-template-columns: 1fr; }
+  .topbar { flex-direction: column; align-items: flex-start; }
+}

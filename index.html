@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>康复运动桥 · 残疾人康复帮扶与体育交流平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar card">
+        <div class="brand">🤍 康复运动桥</div>
+        <nav class="menu">
+          <button class="menu-item active" data-tab="home">首页</button>
+          <button class="menu-item" data-tab="knowledge">健康知识入口</button>
+          <button class="menu-item" data-tab="sports">体育资讯入口</button>
+          <button class="menu-item" data-tab="videos">视频专区入口</button>
+          <button class="menu-item" data-tab="assistant">AI助手入口</button>
+          <button class="menu-item" data-tab="community">求助交流入口</button>
+          <button class="menu-item" data-tab="services">中介服务</button>
+          <button class="menu-item" data-tab="shop">商家入驻</button>
+          <button class="menu-item" data-tab="profile">个人中心</button>
+        </nav>
+        <div class="profile-mini">
+          <h4 id="sideName">访客用户</h4>
+          <p id="sideState">未登录</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar card">
+          <div>
+            <h1>你好，<span id="welcomeName">朋友</span> 👋</h1>
+            <p id="greetingText">欢迎来到残疾人康复帮扶与体育交流平台</p>
+          </div>
+          <div class="search-row">
+            <input id="search" type="text" placeholder="搜索资讯 / 视频 / 理疗师" />
+            <button id="searchBtn" class="pill-btn">搜索</button>
+          </div>
+        </header>
+
+        <section id="home" class="tab-content active grid-home">
+          <article class="card panel-lg">
+            <div class="panel-head">
+              <h2>启动逻辑面板</h2>
+              <span id="todayDate"></span>
+            </div>
+            <div id="flowStatus" class="notice"></div>
+            <div class="flow-grid">
+              <div class="flow-item">① 启动应用</div>
+              <div class="flow-item">② 检查是否登录</div>
+              <div class="flow-item">③ 未登录 -> 进入注册/登录</div>
+              <div class="flow-item">④ 已登录 -> 进入首页/资讯中心</div>
+            </div>
+          </article>
+
+          <article class="card panel-md">
+            <h2>今日康复计划</h2>
+            <div class="plan-grid" id="planGrid"></div>
+          </article>
+
+          <article class="card panel-lg">
+            <div class="panel-head">
+              <h2>资讯中心</h2>
+              <span>阅读 / 分享 / 收藏</span>
+            </div>
+            <div class="info-hub">
+              <button class="hub-btn" data-tab-jump="knowledge">浏览健康内容</button>
+              <button class="hub-btn" data-tab-jump="sports">查看体育资讯</button>
+              <button class="hub-btn" data-tab-jump="videos">浏览视频列表</button>
+              <button class="hub-btn" data-tab-jump="assistant">智能答疑</button>
+              <button class="hub-btn" data-tab-jump="community">求助发布/收藏</button>
+            </div>
+          </article>
+
+          <article class="card panel-md">
+            <h2>权威内容引入</h2>
+            <div class="simple-list">
+              <div>协和医院康复中心：官方认证上肢训练课程（医学审核通过）。</div>
+              <div>运康学院：教师主讲 + 实习生协助上传，自动累计志愿时长。</div>
+              <div>北京康复医院：风险分级标签（A/B/C）确保训练安全。</div>
+            </div>
+          </article>
+        </section>
+
+        <section id="knowledge" class="tab-content card">
+          <h2>健康知识</h2>
+          <div id="knowledgeList" class="simple-list"></div>
+        </section>
+
+        <section id="sports" class="tab-content card">
+          <h2>体育资讯</h2>
+          <div id="sportsList" class="simple-list"></div>
+        </section>
+
+        <section id="videos" class="tab-content card">
+          <div class="panel-head">
+            <h2>视频专区</h2>
+            <span>连续观看超 2 小时自动休息提醒</span>
+          </div>
+          <div class="panel-head compact">
+            <button id="locateBtn" class="pill-btn">附近推荐</button>
+            <p id="locationHint">点击后根据定位推荐周边视频资源。</p>
+          </div>
+          <div id="nearbyVideos" class="video-list"></div>
+          <video id="rehabVideo" controls width="100%" poster="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200">
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+          </video>
+          <p id="watchTimer">已连续观看：0 分钟</p>
+        </section>
+
+        <section id="assistant" class="tab-content card">
+          <h2>AI智能助手</h2>
+          <p id="careText" class="notice"></p>
+          <div class="assistant-box">
+            <textarea id="aiInput" placeholder="输入你的身体状态和目标，例如：下肢力量弱、希望居家训练"></textarea>
+            <button id="aiAsk" class="pill-btn">获取建议</button>
+          </div>
+          <button id="generatePlanBtn" class="pill-btn">生成个性化康复计划</button>
+          <div id="aiResponse" class="ai-response"></div>
+          <div id="aiPlan" class="ai-response"></div>
+        </section>
+
+        <section id="community" class="tab-content card">
+          <h2>互助社区</h2>
+          <div class="post-editor">
+            <textarea id="postInput" placeholder="发布话题：分享经验 / 求助问题 / 暖心故事"></textarea>
+            <button id="postBtn" class="pill-btn">发布话题</button>
+          </div>
+          <div id="postList"></div>
+        </section>
+
+        <section id="services" class="tab-content card">
+          <h2>中介服务平台（理疗师对接）</h2>
+          <div id="serviceGrid" class="service-grid"></div>
+        </section>
+
+        <section id="shop" class="tab-content card">
+          <h2>商家入驻接口</h2>
+          <div class="shop-grid">
+            <div class="shop-item">
+              <h3>理疗设备商城 API</h3>
+              <p>支持助行器、康复机器人、家庭无障碍改造件一站式采购。</p>
+            </div>
+            <div class="shop-item">
+              <h3>品控 + 价格机制</h3>
+              <p>平台抽检与比价，确保“价格更优 + 质量可控”。</p>
+            </div>
+            <div class="shop-item">
+              <h3>可持续盈利</h3>
+              <p>通过渠道差价与服务费实现长期运营，并反哺公益内容。</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="profile" class="tab-content card">
+          <h2>个人中心</h2>
+          <div class="auth-grid">
+            <input id="username" placeholder="输入手机号/用户名" />
+            <input id="password" placeholder="输入密码" type="password" />
+            <div class="auth-actions">
+              <button id="registerBtn" class="pill-btn">注册</button>
+              <button id="loginBtn" class="pill-btn">登录</button>
+              <button id="logoutBtn" class="pill-btn ghost">退出登录</button>
+            </div>
+            <p id="authMessage"></p>
+          </div>
+          <div class="profile-panels">
+            <article class="card inset"><h3>收藏内容</h3><div id="favList"></div></article>
+            <article class="card inset"><h3>观看历史</h3><div id="historyList"></div></article>
+            <article class="card inset">
+              <h3>视频偏好设置</h3>
+              <label><input id="noDisturb" type="checkbox" /> 开启免打扰（22:00-07:00）</label>
+              <label>单次观看提醒阈值（分钟）<input id="limitMinutes" type="number" min="30" max="240" value="120" /></label>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="restModal" class="modal hidden">
+      <div class="modal-card">
+        <h3>温馨提醒 💛</h3>
+        <p>你已连续观看视频超过设定时长，建议休息 10 分钟并活动肩颈。</p>
+        <button id="closeRestModal" class="pill-btn">我知道了</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
