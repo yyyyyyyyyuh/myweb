@@ -130,14 +130,67 @@
             </div>
             <p id="authMessage"></p>
           </div>
-          <div class="profile-panels">
-            <article class="card inset"><h3>收藏内容</h3><div id="favList"></div></article>
-            <article class="card inset"><h3>观看历史</h3><div id="historyList"></div></article>
-            <article class="card inset">
-              <h3>视频偏好设置</h3>
-              <label><input id="noDisturb" type="checkbox" /> 开启免打扰（22:00-07:00）</label>
-              <label>单次观看提醒阈值（分钟）<input id="limitMinutes" type="number" min="30" max="240" value="120" /></label>
-            </article>
+
+          <div class="profile-layout">
+            <aside class="card inset profile-side">
+              <img id="profileAvatar" class="profile-avatar" src="" alt="avatar" />
+              <h3 id="profileName">访客用户</h3>
+              <p id="profileIdText">ID: --</p>
+              <p id="profileBioText" class="muted">这个人很神秘，什么都没有留下。</p>
+              <div class="count-row">
+                <div><strong id="followingCount">0</strong><span>关注</span></div>
+                <div><strong id="followersCount">0</strong><span>粉丝</span></div>
+              </div>
+              <div class="avatar-edit">
+                <input id="avatarUrlInput" placeholder="输入头像URL后点击保存" />
+                <button id="saveAvatarBtn" class="pill-btn">保存头像</button>
+              </div>
+            </aside>
+
+            <div class="profile-main">
+              <article class="card inset">
+                <div class="panel-head">
+                  <h3>添加好友</h3>
+                  <button id="openFriendSearch" class="icon-btn" aria-label="添加好友">➕</button>
+                </div>
+                <div id="friendSearchBox" class="friend-search hidden">
+                  <input id="friendKeyword" placeholder="输入用户ID或用户名" />
+                  <button id="friendSearchBtn" class="pill-btn">搜索</button>
+                </div>
+                <div id="friendResultList"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>我的发布</h3>
+                <div id="publishedList"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>收藏内容（帖子/资讯/视频）</h3>
+                <div id="favList"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>历史记录</h3>
+                <div id="historyList"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>私信（与已关注用户）</h3>
+                <div class="dm-controls">
+                  <select id="dmTarget"></select>
+                  <input id="dmInput" placeholder="输入私信内容" />
+                  <button id="dmSendBtn" class="pill-btn">发送</button>
+                </div>
+                <div id="dmThread" class="dm-thread"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>设置</h3>
+                <label><input id="noDisturb" type="checkbox" /> 开启免打扰（22:00-07:00）</label>
+                <label>单次观看提醒阈值（分钟）<input id="limitMinutes" type="number" min="30" max="240" value="120" /></label>
+              </article>
+            </div>
           </div>
         </section>
       </main>
