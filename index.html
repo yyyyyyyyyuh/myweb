@@ -192,6 +192,25 @@
       </div>
     </div>
 
+
+    <button id="aiFloatBtn" class="ai-float-btn" aria-label="打开AI助手">AI助手</button>
+
+    <div id="aiFloatOverlay" class="ai-float-overlay hidden" aria-hidden="true">
+      <div id="aiFloatPanel" class="ai-float-panel" role="dialog" aria-label="悬浮AI对话框">
+        <div id="aiFloatDrag" class="ai-float-head">
+          <strong>AI康复助手</strong>
+          <button id="closeAiFloat" class="mini-close" aria-label="关闭">✕</button>
+        </div>
+        <div id="aiFloatMessages" class="ai-float-messages">
+          <div class="msg ai">你好，我是你的康复助手。告诉我你的身体情况，我来给你建议。</div>
+        </div>
+        <div class="ai-float-input">
+          <textarea id="aiFloatInput" placeholder="例如：我今天腿部酸痛，能做哪些低强度训练？"></textarea>
+          <button id="aiFloatSend" class="pill-btn">发送</button>
+        </div>
+      </div>
+    </div>
+
     <script src="script.js"></script>
   </body>
 </html>
