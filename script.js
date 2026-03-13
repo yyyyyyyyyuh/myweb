@@ -15,7 +15,9 @@ const calendarGrid = document.getElementById('calendarGrid');
 const checkinBtn = document.getElementById('checkinBtn');
 const checkinMinutes = document.getElementById('checkinMinutes');
 const checkinType = document.getElementById('checkinType');
+const fatigueLevel = document.getElementById('fatigueLevel');
 const checkinMsg = document.getElementById('checkinMsg');
+const healthScoreValue = document.getElementById('healthScoreValue');
 
 const state = {
   user: JSON.parse(localStorage.getItem('rehabUser') || 'null'),
@@ -101,7 +103,11 @@ function activeUserKey() {
 function userBucket() {
   const k = activeUserKey();
   if (!state.userStore[k]) {
-    state.userStore[k] = { posts: [], favorites: [], history: [], checkins: [], likedPostIds: [] };
+    state.userStore[k] = { posts: [], favorites: [], history: [], checkins: [], likedPostIds: [], daily: {} };
+    save('rehabUserStore', state.userStore);
+  }
+  if (!state.userStore[k].daily) {
+    state.userStore[k].daily = {};
     save('rehabUserStore', state.userStore);
   }
   return state.userStore[k];
@@ -146,9 +152,17 @@ function ensureUserModel() {
       history: state.history || [],
       checkins: state.checkins || [],
       likedPostIds: [],
+      daily: {},
     };
     changed = true;
   }
+
+  Object.keys(state.userStore).forEach((k) => {
+    if (!state.userStore[k].daily) {
+      state.userStore[k].daily = {};
+      changed = true;
+    }
+  });
 
   if (state.user && !state.user.id) {
     const found = state.users.find((u) => u.username === state.user.username);
@@ -191,6 +205,27 @@ function syncProfileAuthVisibility() {
   if (logout2) logout2.classList.toggle('hidden', !loggedIn);
 }
 
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function todayMetrics() {
+  const box = userBucket();
+  box.daily[todayKey()] = box.daily[todayKey()] || { articleReads: [], videoReads: [], exercise: 0 };
+  return box.daily[todayKey()];
+}
+
+function renderHealthScore() {
+  const m = todayMetrics();
+  const articleScore = Math.min(2, new Set(m.articleReads).size) * 5;
+  const videoScore = Math.min(2, new Set(m.videoReads).size) * 5;
+  const learningScore = articleScore + videoScore;
+  const exerciseScore = Math.min(40, Number(m.exercise || 0));
+  const total = Math.min(100, 40 + learningScore + exerciseScore);
+  if (healthScoreValue) healthScoreValue.textContent = String(Math.round(total));
+}
+
 
 function renderPlans(plans = defaultPlans) {
   planGrid.innerHTML = plans.map((p) => `<div class="plan-item"><h4>${p[0]}</h4><p>${p[1]}</p><small>${p[2]}</small></div>`).join('');
@@ -222,8 +257,14 @@ function renderCalendar() {
 }
 
 function renderList(elId, list, category) {
+  const daily = todayMetrics();
+  const scored = new Set(daily.articleReads);
   document.getElementById(elId).innerHTML = list
-    .map((item) => `<div>${item} <button class="hub-btn collect-btn" data-category="${category}" data-item="${item}">收藏</button></div>`)
+    .map((item, idx) => {
+      const readId = `${category}-${idx}`;
+      const readDone = scored.has(readId);
+      return `<div>${item} <button class="hub-btn collect-btn" data-category="${category}" data-item="${item}">收藏</button> <button class="hub-btn read-btn" data-read-id="${readId}">${readDone ? '已计分' : '阅读1分钟计分'}</button></div>`;
+    })
     .join('');
 }
 
@@ -475,7 +516,7 @@ document.getElementById('searchBtn').addEventListener('click', () => {
 });
 
 checkinBtn.addEventListener('click', () => {
-  const minutes = checkinMinutes.value.trim();
+  const minutes = Number(checkinMinutes.value.trim());
   const type = checkinType.value.trim();
   if (!minutes || !type) {
     checkinMsg.textContent = '请填写训练时长和训练类型后再打卡。';
@@ -486,9 +527,14 @@ checkinBtn.addEventListener('click', () => {
   const box = userBucket();
   box.checkins = box.checkins.filter((c) => c.date !== date);
   box.checkins.push({ date, minutes, type, user: currentUser()?.username || '访客' });
+  const factor = Number(fatigueLevel?.value || 1);
+  const exerciseScore = Math.min(40, minutes * factor);
+  const metrics = todayMetrics();
+  metrics.exercise = exerciseScore;
   saveUserBucket();
-  checkinMsg.textContent = `打卡成功：${type}，${minutes} 分钟。`;
+  checkinMsg.textContent = `打卡成功：${type}，${minutes} 分钟，运动分 ${exerciseScore.toFixed(1)}。`;
   renderCalendar();
+  renderHealthScore();
 });
 
 document.getElementById('locateBtn').addEventListener('click', () => {
@@ -513,6 +559,18 @@ document.getElementById('locateBtn').addEventListener('click', () => {
 document.getElementById('nearbyVideos').addEventListener('click', (e) => {
   if (!e.target.classList.contains('play-nearby')) return;
   addHistory(`观看附近视频：${e.target.dataset.title}`);
+  const title = e.target.dataset.title;
+  e.target.textContent = '计时中...';
+  e.target.disabled = true;
+  setTimeout(() => {
+    const metrics = todayMetrics();
+    if (!metrics.videoReads.includes(title)) {
+      metrics.videoReads.push(title);
+      saveUserBucket();
+      renderHealthScore();
+    }
+    e.target.textContent = '已计分';
+  }, 60000);
   document.getElementById('rehabVideo').scrollIntoView({ behavior: 'smooth' });
 });
 
@@ -569,6 +627,7 @@ if (loginBtn) loginBtn.addEventListener('click', () => {
   renderProfileData();
   renderPosts();
   renderCalendar();
+  renderHealthScore();
   switchTab('profile');
 });
 
@@ -582,6 +641,7 @@ if (logoutBtn) logoutBtn.addEventListener('click', () => {
   renderProfileData();
   renderPosts();
   renderCalendar();
+  renderHealthScore();
 });
 
 
@@ -595,10 +655,25 @@ if (logoutBtn2) logoutBtn2.addEventListener('click', () => {
   renderProfileData();
   renderPosts();
   renderCalendar();
+  renderHealthScore();
 });
 
 document.body.addEventListener('click', (e) => {
   if (e.target.classList.contains('collect-btn')) addFavorite(e.target.dataset.item, e.target.dataset.category);
+  if (e.target.classList.contains('read-btn')) {
+    const readId = e.target.dataset.readId;
+    e.target.textContent = '阅读计时中...';
+    e.target.disabled = true;
+    setTimeout(() => {
+      const metrics = todayMetrics();
+      if (!metrics.articleReads.includes(readId)) {
+        metrics.articleReads.push(readId);
+        saveUserBucket();
+      }
+      e.target.textContent = '已计分';
+      renderHealthScore();
+    }, 60000);
+  }
   if (e.target.classList.contains('follow-btn')) toggleFollow(e.target.dataset.uid);
   if (e.target.classList.contains('dm-open-btn')) openDmWith(e.target.dataset.uid);
 });
@@ -665,9 +740,20 @@ document.getElementById('closeRestModal').addEventListener('click', () => restMo
 const video = document.getElementById('rehabVideo');
 let watchedSeconds = 0;
 let warned = false;
+let currentVideoScored = false;
 setInterval(() => {
   if (!video.paused && !video.ended) {
     watchedSeconds += 1;
+    if (!currentVideoScored && watchedSeconds >= 60) {
+      const metrics = todayMetrics();
+      const videoKey = video.currentSrc || '主视频';
+      if (!metrics.videoReads.includes(videoKey)) {
+        metrics.videoReads.push(videoKey);
+        saveUserBucket();
+        renderHealthScore();
+      }
+      currentVideoScored = true;
+    }
     watchTimer.textContent = `已连续观看：${Math.floor(watchedSeconds / 60)} 分钟`;
     const limit = Number(document.getElementById('limitMinutes').value || 120) * 60;
     const noDisturb = document.getElementById('noDisturb').checked;
@@ -680,6 +766,7 @@ setInterval(() => {
   } else {
     watchedSeconds = 0;
     warned = false;
+    currentVideoScored = false;
   }
 }, 1000);
 
@@ -805,6 +892,7 @@ function init() {
   });
   renderPosts();
   syncUserUI();
+  renderHealthScore();
   renderFriendResults();
   renderProfileData();
   syncProfileAuthVisibility();

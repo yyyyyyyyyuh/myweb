@@ -49,9 +49,19 @@ body {
 .profile-mini p { color: var(--muted); font-size: 13px; }
 
 .main { display: grid; gap: 16px; }
-.topbar { padding: 20px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.topbar { padding: 20px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; min-height: 132px; }
 .topbar h1 { margin: 0; }
 .topbar p { margin: 4px 0 0; color: var(--muted); }
+.health-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  color: #5b5446;
+  font-size: 18px;
+}
+.health-score b { color: #c18f00; }
+
 .search-row { display: flex; gap: 8px; width: min(460px, 100%); }
 
 input, textarea {
