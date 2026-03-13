@@ -340,3 +340,70 @@ h3 { margin: 0 0 8px; }
 
 .profile-auth { margin-bottom: 12px; }
 .profile-auth h2 { margin-bottom: 10px; }
+
+.setting-inline {
+  display: grid;
+  grid-template-columns: 26px 1fr 180px;
+  align-items: center;
+  gap: 10px;
+}
+
+.therapy-filters {
+  display: grid;
+  grid-template-columns: 180px 180px auto;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.therapist-list {
+  display: grid;
+  gap: 10px;
+}
+.therapist-item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.therapist-item img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+
+.shop-category {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.shop-chip {
+  border: 1px solid #f1d998;
+  background: #fff9e8;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.shop-chip.active { background: var(--accent); color: #fff; border-color: transparent; }
+.shop-waterfall {
+  column-count: 3;
+  column-gap: 12px;
+}
+.shop-card {
+  break-inside: avoid;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.shop-card img { width: 100%; display: block; }
+.shop-card .meta { padding: 10px; }
+.shop-card .price { color: #c18f00; font-weight: 800; }
+
+@media (max-width: 1080px) {
+  .therapy-filters { grid-template-columns: 1fr; }
+  .setting-inline { grid-template-columns: 26px 1fr; }
+  .setting-inline #limitMinutes { grid-column: 1 / -1; }
+  .shop-waterfall { column-count: 1; }
+}

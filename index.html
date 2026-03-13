@@ -22,6 +22,8 @@
           <button class="menu-item" data-tab="sports">体育资讯</button>
           <button class="menu-item" data-tab="videos">视频专区</button>
           <button class="menu-item" data-tab="community">互助社区</button>
+          <button class="menu-item" data-tab="therapy">理疗服务</button>
+          <button class="menu-item" data-tab="shop">优选商城</button>
           <button class="menu-item" data-tab="profile">个人中心</button>
         </nav>
         <div class="profile-mini">
@@ -118,6 +120,29 @@
           <div id="postList"></div>
         </section>
 
+
+        <section id="therapy" class="tab-content card">
+          <div class="panel-head">
+            <h2>理疗服务</h2>
+            <span>选择省市后匹配上门理疗师</span>
+          </div>
+          <div class="therapy-filters">
+            <select id="provinceSelect"></select>
+            <select id="citySelect"></select>
+            <button id="searchTherapistBtn" class="pill-btn">查找理疗师</button>
+          </div>
+          <div id="therapistList" class="therapist-list"></div>
+        </section>
+
+        <section id="shop" class="tab-content card">
+          <div class="panel-head">
+            <h2>优选商城</h2>
+            <span>价格更优 · 质量可控 · 一站式购买</span>
+          </div>
+          <div id="shopCategory" class="shop-category"></div>
+          <div id="shopWaterfall" class="shop-waterfall"></div>
+        </section>
+
         <section id="profile" class="tab-content card">
           <div id="profileAuthBlock" class="profile-auth card inset">
             <h2>个人中心</h2>
@@ -191,8 +216,11 @@
 
               <article class="card inset">
                 <h3>设置</h3>
-                <label><input id="noDisturb" type="checkbox" /> 开启免打扰（22:00-07:00）</label>
-                <label>单次观看提醒阈值（分钟）<input id="limitMinutes" type="number" min="30" max="240" value="120" /></label>
+                <div class="setting-inline">
+                  <input id="noDisturb" type="checkbox" />
+                  <span>开启免打扰（22:00-07:00） 单次观看提醒阈值（分钟）</span>
+                  <input id="limitMinutes" type="number" min="30" max="240" value="120" disabled />
+                </div>
               </article>
             </div>
           </div>

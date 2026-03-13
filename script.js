@@ -61,6 +61,35 @@ const geoVideos = {
   ],
 };
 
+const therapyMap = {
+  浙江: {
+    杭州: [
+      { name: '周晨', title: '神经康复理疗师', price: '¥198/次', mode: '支持上门' },
+      { name: '林悦', title: '运动康复治疗师', price: '¥228/次', mode: '支持上门' },
+    ],
+    宁波: [{ name: '顾宁', title: '关节康复理疗师', price: '¥188/次', mode: '支持上门' }],
+  },
+  上海: {
+    上海市: [
+      { name: '陈峰', title: '脊柱康复理疗师', price: '¥260/次', mode: '支持上门' },
+      { name: '徐晴', title: '儿童康复治疗师', price: '¥230/次', mode: '机构/上门' },
+    ],
+  },
+  广东: {
+    广州: [{ name: '黄杰', title: '术后康复理疗师', price: '¥210/次', mode: '支持上门' }],
+    深圳: [{ name: '苏雅', title: '姿态矫正理疗师', price: '¥240/次', mode: '支持上门' }],
+  },
+};
+
+const shopItems = [
+  { category: '助行设备', name: '轻量助行器', price: '¥299', img: 'https://images.unsplash.com/photo-1542816417-0983678b9c7b?w=600' },
+  { category: '康复训练', name: '弹力训练带套装', price: '¥69', img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600' },
+  { category: '理疗器械', name: '便携筋膜放松仪', price: '¥199', img: 'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600' },
+  { category: '康复训练', name: '平衡训练垫', price: '¥159', img: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600' },
+  { category: '理疗器械', name: '热敷理疗护膝', price: '¥129', img: 'https://images.unsplash.com/photo-1584467735871-10c1a977fd2c?w=600' },
+  { category: '助行设备', name: '折叠防滑拐杖', price: '¥89', img: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=600' },
+];
+
 function save(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
@@ -369,6 +398,45 @@ function renderDmThread() {
     : '<p>还没有私信消息，发一条问候吧。</p>';
 }
 
+
+function initTherapyFilters() {
+  const province = document.getElementById('provinceSelect');
+  const city = document.getElementById('citySelect');
+  if (!province || !city) return;
+  const provinces = Object.keys(therapyMap);
+  province.innerHTML = provinces.map((p) => `<option value="${p}">${p}</option>`).join('');
+  function syncCities() {
+    const p = province.value;
+    const cities = Object.keys(therapyMap[p] || {});
+    city.innerHTML = cities.map((c) => `<option value="${c}">${c}</option>`).join('');
+  }
+  province.addEventListener('change', syncCities);
+  syncCities();
+}
+
+function renderTherapistsByRegion() {
+  const province = document.getElementById('provinceSelect')?.value;
+  const city = document.getElementById('citySelect')?.value;
+  const list = document.getElementById('therapistList');
+  if (!list || !province || !city) return;
+  const data = therapyMap[province]?.[city] || [];
+  if (!data.length) {
+    list.innerHTML = '<p>当前地区暂无可预约理疗师。</p>';
+    return;
+  }
+  list.innerHTML = data.map((t) => `<div class="therapist-item"><img src="https://i.pravatar.cc/90?u=${t.name}" alt="avatar"/><div><h4>${t.name}</h4><p>${t.title}</p><p>${province}·${city}｜${t.mode}</p></div><div><p class="price">${t.price}</p><button class="pill-btn">预约对接</button></div></div>`).join('');
+}
+
+function renderShop(category = '全部') {
+  const wrap = document.getElementById('shopWaterfall');
+  const chips = document.getElementById('shopCategory');
+  if (!wrap || !chips) return;
+  const categories = ['全部', ...new Set(shopItems.map((i) => i.category))];
+  chips.innerHTML = categories.map((c) => `<button class="shop-chip ${c === category ? 'active' : ''}" data-category="${c}">${c}</button>`).join('');
+  const list = category === '全部' ? shopItems : shopItems.filter((i) => i.category === category);
+  wrap.innerHTML = list.map((i) => `<article class="shop-card"><img src="${i.img}" alt="${i.name}"/><div class="meta"><h4>${i.name}</h4><p>${i.category}</p><p class="price">${i.price}</p></div></article>`).join('');
+}
+
 function renderCareText() {
   const hour = new Date().getHours();
   let text = '愿你今天也被温柔以待。';
@@ -469,7 +537,6 @@ document.getElementById('postBtn').addEventListener('click', () => {
   saveUserBucket();
   renderPosts();
   renderProfileData();
-  renderPosts();
   renderCalendar();
 });
 
@@ -526,6 +593,8 @@ if (logoutBtn2) logoutBtn2.addEventListener('click', () => {
   if (msg) msg.textContent = '已退出登录';
   syncUserUI();
   renderProfileData();
+  renderPosts();
+  renderCalendar();
 });
 
 document.body.addEventListener('click', (e) => {
@@ -582,6 +651,14 @@ if (dmSendBtn) dmSendBtn.addEventListener('click', () => {
   document.getElementById('dmInput').value = '';
   renderDmThread();
 });
+
+const noDisturbEl = document.getElementById('noDisturb');
+const limitMinutesEl = document.getElementById('limitMinutes');
+if (noDisturbEl && limitMinutesEl) {
+  const syncLimitEditable = () => { limitMinutesEl.disabled = !noDisturbEl.checked; };
+  noDisturbEl.addEventListener('change', syncLimitEditable);
+  syncLimitEditable();
+}
 
 document.getElementById('closeRestModal').addEventListener('click', () => restModal.classList.add('hidden'));
 
@@ -717,6 +794,15 @@ function init() {
   renderList('knowledgeList', knowledgeData, '健康知识');
   renderList('sportsList', sportsData, '体育资讯');
   renderNearby(geoVideos.default);
+  initTherapyFilters();
+  renderTherapistsByRegion();
+  renderShop('全部');
+  document.getElementById('searchTherapistBtn')?.addEventListener('click', renderTherapistsByRegion);
+  document.getElementById('citySelect')?.addEventListener('change', renderTherapistsByRegion);
+  document.getElementById('shopCategory')?.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('shop-chip')) return;
+    renderShop(e.target.dataset.category);
+  });
   renderPosts();
   syncUserUI();
   renderFriendResults();
