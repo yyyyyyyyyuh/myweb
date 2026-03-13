@@ -119,6 +119,20 @@
         </section>
 
         <section id="profile" class="tab-content card">
+          <div id="profileAuthBlock" class="profile-auth card inset">
+            <h2>个人中心</h2>
+            <div class="auth-grid">
+              <input id="username" placeholder="输入手机号/用户名" />
+              <input id="password" placeholder="输入密码" type="password" />
+              <div class="auth-actions">
+                <button id="registerBtn" class="pill-btn">注册</button>
+                <button id="loginBtn" class="pill-btn">登录</button>
+                <button id="logoutBtn" class="pill-btn ghost">退出登录</button>
+              </div>
+              <p id="authMessage"></p>
+            </div>
+          </div>
+
           <div class="profile-layout">
             <aside class="card inset profile-side">
               <img id="profileAvatar" class="profile-avatar" src="" alt="avatar" />
@@ -133,6 +147,7 @@
               <div class="avatar-edit">
                 <input id="avatarUrlInput" placeholder="输入头像URL后点击保存" />
                 <button id="saveAvatarBtn" class="pill-btn">保存头像</button>
+                <button id="logoutBtn2" class="pill-btn ghost">退出登录</button>
               </div>
             </aside>
 

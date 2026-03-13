@@ -337,3 +337,6 @@ h3 { margin: 0 0 8px; }
 }
 
 .bio-input { min-height: 86px; }
+
+.profile-auth { margin-bottom: 12px; }
+.profile-auth h2 { margin-bottom: 10px; }

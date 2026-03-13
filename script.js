@@ -124,6 +124,15 @@ function syncUserUI() {
   document.getElementById('sideState').textContent = user ? `ID:${user.id}` : '未登录';
 }
 
+function syncProfileAuthVisibility() {
+  const block = document.getElementById('profileAuthBlock');
+  const logout2 = document.getElementById('logoutBtn2');
+  const loggedIn = Boolean(currentUser());
+  if (block) block.classList.toggle('hidden', loggedIn);
+  if (logout2) logout2.classList.toggle('hidden', !loggedIn);
+}
+
+
 function renderPlans(plans = defaultPlans) {
   planGrid.innerHTML = plans.map((p) => `<div class="plan-item"><h4>${p[0]}</h4><p>${p[1]}</p><small>${p[2]}</small></div>`).join('');
 }
@@ -226,6 +235,7 @@ function renderProfileData() {
     publishedList.innerHTML = '<p>请登录后查看我的发布</p>';
     dmTarget.innerHTML = '<option value="">请先登录</option>';
     document.getElementById('dmThread').innerHTML = '<p>暂无私信</p>';
+    syncProfileAuthVisibility();
     return;
   }
 
@@ -261,6 +271,7 @@ function renderProfileData() {
     .join('');
   dmTarget.innerHTML = options || '<option value="">暂无已关注用户</option>';
   renderDmThread();
+  syncProfileAuthVisibility();
 }
 
 function renderFriendResults(keyword = '') {
@@ -451,6 +462,17 @@ if (loginBtn) loginBtn.addEventListener('click', () => {
 
 const logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) logoutBtn.addEventListener('click', () => {
+  state.user = null;
+  localStorage.removeItem('rehabUser');
+  const msg = document.getElementById('authMessage');
+  if (msg) msg.textContent = '已退出登录';
+  syncUserUI();
+  renderProfileData();
+});
+
+
+const logoutBtn2 = document.getElementById('logoutBtn2');
+if (logoutBtn2) logoutBtn2.addEventListener('click', () => {
   state.user = null;
   localStorage.removeItem('rehabUser');
   const msg = document.getElementById('authMessage');
@@ -652,6 +674,7 @@ function init() {
   syncUserUI();
   renderFriendResults();
   renderProfileData();
+  syncProfileAuthVisibility();
 }
 
 init();
