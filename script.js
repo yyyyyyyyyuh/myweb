@@ -27,6 +27,7 @@ const state = {
   followGraph: JSON.parse(localStorage.getItem('rehabFollowGraph') || '{}'),
   dmThreads: JSON.parse(localStorage.getItem('rehabDmThreads') || '{}'),
   profiles: JSON.parse(localStorage.getItem('rehabProfiles') || '{}'),
+  userStore: JSON.parse(localStorage.getItem('rehabUserStore') || '{}'),
 };
 
 const knowledgeData = [
@@ -64,6 +65,23 @@ function save(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+function activeUserKey() {
+  return currentUser()?.id || '__guest__';
+}
+
+function userBucket() {
+  const k = activeUserKey();
+  if (!state.userStore[k]) {
+    state.userStore[k] = { posts: [], favorites: [], history: [], checkins: [], likedPostIds: [] };
+    save('rehabUserStore', state.userStore);
+  }
+  return state.userStore[k];
+}
+
+function saveUserBucket() {
+  save('rehabUserStore', state.userStore);
+}
+
 function ensureUserModel() {
   let changed = false;
   state.users = state.users.map((u, idx) => {
@@ -92,6 +110,17 @@ function ensureUserModel() {
       changed = true;
     }
   });
+  if (!state.userStore.__guest__) {
+    state.userStore.__guest__ = {
+      posts: state.posts || [],
+      favorites: state.favorites || [],
+      history: state.history || [],
+      checkins: state.checkins || [],
+      likedPostIds: [],
+    };
+    changed = true;
+  }
+
   if (state.user && !state.user.id) {
     const found = state.users.find((u) => u.username === state.user.username);
     if (found) {
@@ -103,6 +132,7 @@ function ensureUserModel() {
     save('rehabUsers', state.users);
     save('rehabProfiles', state.profiles);
     save('rehabUser', state.user);
+    save('rehabUserStore', state.userStore);
   }
 }
 
@@ -148,7 +178,8 @@ function renderCalendar() {
   calendarWeek.innerHTML = weekLabels.map((w) => `<div>${w}</div>`).join('');
 
   const monthPrefix = `${y}-${String(m + 1).padStart(2, '0')}-`;
-  const doneDays = new Set(state.checkins.filter((c) => c.date.startsWith(monthPrefix)).map((c) => Number(c.date.slice(-2))));
+  const checkins = userBucket().checkins;
+  const doneDays = new Set(checkins.filter((c) => c.date.startsWith(monthPrefix)).map((c) => Number(c.date.slice(-2))));
 
   const startOffset = (firstDay.getDay() + 6) % 7;
   const cells = [];
@@ -168,16 +199,18 @@ function renderList(elId, list, category) {
 }
 
 function addFavorite(item, category) {
-  state.favorites.unshift({ item, category, time: new Date().toLocaleString('zh-CN') });
-  state.favorites = state.favorites.slice(0, 50);
-  save('rehabFavorites', state.favorites);
+  const box = userBucket();
+  box.favorites.unshift({ item, category, time: new Date().toLocaleString('zh-CN') });
+  box.favorites = box.favorites.slice(0, 50);
+  saveUserBucket();
   renderProfileData();
 }
 
 function addHistory(item) {
-  state.history.unshift(`${new Date().toLocaleTimeString('zh-CN')} ${item}`);
-  state.history = state.history.slice(0, 80);
-  save('rehabHistory', state.history);
+  const box = userBucket();
+  box.history.unshift(`${new Date().toLocaleTimeString('zh-CN')} ${item}`);
+  box.history = box.history.slice(0, 80);
+  saveUserBucket();
   renderProfileData();
 }
 
@@ -189,11 +222,12 @@ function renderNearby(list) {
 
 function renderPosts() {
   const list = document.getElementById('postList');
-  if (!state.posts.length) {
+  const posts = userBucket().posts;
+  if (!posts.length) {
     list.innerHTML = '<p>还没有帖子，来发布第一条鼓励吧！</p>';
     return;
   }
-  list.innerHTML = state.posts
+  list.innerHTML = posts
     .map((p, i) => `<div class="post-item"><h4>${p.author}</h4><div>${p.content}</div><div class="post-meta"><span>👍 ${p.likes}</span><span>💬 ${p.comments.length}</span></div><div class="post-actions"><button onclick="likePost(${i})">点赞</button><button onclick="favPost(${i})">收藏</button></div><div>${p.comments.map((c) => `<p>— ${c}</p>`).join('')}</div><div class="comment-row"><input id="comment-${i}" placeholder="写下评论..."/><button class="pill-btn" onclick="addComment(${i})">评论</button></div></div>`)
     .join('');
 }
@@ -249,16 +283,17 @@ function renderProfileData() {
   followingCount.textContent = String(following.length);
   followers.textContent = String(followersCount(me.id));
 
-  favList.innerHTML = state.favorites.length
-    ? state.favorites.map((f) => `<p>${f.time} · [${f.category}] ${f.item}</p>`).join('')
+  const box = userBucket();
+  favList.innerHTML = box.favorites.length
+    ? box.favorites.map((f) => `<p>${f.time} · [${f.category}] ${f.item}</p>`).join('')
     : '<p>暂无收藏内容</p>';
 
-  historyList.innerHTML = state.history.length
-    ? state.history.map((h) => `<p>${h}</p>`).join('')
+  historyList.innerHTML = box.history.length
+    ? box.history.map((h) => `<p>${h}</p>`).join('')
     : '<p>暂无历史记录</p>';
 
-  const myPosts = state.posts.filter((p) => p.author === me.username).map((p) => `社区帖子：${p.content}`);
-  const myVideos = state.history.filter((h) => h.includes('观看附近视频')).map((h) => `视频记录：${h}`);
+  const myPosts = box.posts.filter((p) => p.author === me.username).map((p) => `社区帖子：${p.content}`);
+  const myVideos = box.history.filter((h) => h.includes('观看附近视频')).map((h) => `视频记录：${h}`);
   const published = [...myPosts, ...myVideos];
   publishedList.innerHTML = published.length
     ? published.map((x) => `<div class="published-item">${x}</div>`).join('')
@@ -345,16 +380,20 @@ function renderCareText() {
 }
 
 window.likePost = (i) => {
-  state.posts[i].likes += 1;
-  save('rehabPosts', state.posts);
+  const posts = userBucket().posts;
+  if (!posts[i]) return;
+  posts[i].likes += 1;
+  saveUserBucket();
   renderPosts();
 };
-window.favPost = (i) => addFavorite(state.posts[i].content, '社区话题');
+window.favPost = (i) => { const posts = userBucket().posts; if (!posts[i]) return; addFavorite(posts[i].content, '社区话题'); };
 window.addComment = (i) => {
   const input = document.getElementById(`comment-${i}`);
   if (!input.value.trim()) return;
-  state.posts[i].comments.push(input.value.trim());
-  save('rehabPosts', state.posts);
+  const posts = userBucket().posts;
+  if (!posts[i]) return;
+  posts[i].comments.push(input.value.trim());
+  saveUserBucket();
   renderPosts();
 };
 
@@ -376,9 +415,10 @@ checkinBtn.addEventListener('click', () => {
   }
   const d = new Date();
   const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  state.checkins = state.checkins.filter((c) => c.date !== date);
-  state.checkins.push({ date, minutes, type, user: currentUser()?.username || '访客' });
-  save('rehabCheckins', state.checkins);
+  const box = userBucket();
+  box.checkins = box.checkins.filter((c) => c.date !== date);
+  box.checkins.push({ date, minutes, type, user: currentUser()?.username || '访客' });
+  saveUserBucket();
   checkinMsg.textContent = `打卡成功：${type}，${minutes} 分钟。`;
   renderCalendar();
 });
@@ -423,11 +463,14 @@ document.getElementById('postBtn').addEventListener('click', () => {
   const input = document.getElementById('postInput');
   const content = input.value.trim();
   if (!content) return;
-  state.posts.unshift({ author: currentUser()?.username || '匿名朋友', content, likes: 0, comments: [] });
+  const box = userBucket();
+  box.posts.unshift({ author: currentUser()?.username || '匿名朋友', content, likes: 0, comments: [] });
   input.value = '';
-  save('rehabPosts', state.posts);
+  saveUserBucket();
   renderPosts();
   renderProfileData();
+  renderPosts();
+  renderCalendar();
 });
 
 const registerBtn = document.getElementById('registerBtn');
@@ -457,6 +500,8 @@ if (loginBtn) loginBtn.addEventListener('click', () => {
   msg.textContent = `登录成功，欢迎 ${username}`;
   syncUserUI();
   renderProfileData();
+  renderPosts();
+  renderCalendar();
   switchTab('profile');
 });
 
@@ -468,6 +513,8 @@ if (logoutBtn) logoutBtn.addEventListener('click', () => {
   if (msg) msg.textContent = '已退出登录';
   syncUserUI();
   renderProfileData();
+  renderPosts();
+  renderCalendar();
 });
 
 
