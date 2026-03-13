@@ -119,24 +119,13 @@
         </section>
 
         <section id="profile" class="tab-content card">
-          <h2>个人中心</h2>
-          <div class="auth-grid">
-            <input id="username" placeholder="输入手机号/用户名" />
-            <input id="password" placeholder="输入密码" type="password" />
-            <div class="auth-actions">
-              <button id="registerBtn" class="pill-btn">注册</button>
-              <button id="loginBtn" class="pill-btn">登录</button>
-              <button id="logoutBtn" class="pill-btn ghost">退出登录</button>
-            </div>
-            <p id="authMessage"></p>
-          </div>
-
           <div class="profile-layout">
             <aside class="card inset profile-side">
               <img id="profileAvatar" class="profile-avatar" src="" alt="avatar" />
               <h3 id="profileName">访客用户</h3>
               <p id="profileIdText">ID: --</p>
-              <p id="profileBioText" class="muted">这个人很神秘，什么都没有留下。</p>
+              <textarea id="profileBioInput" class="bio-input" placeholder="编辑个人简介"></textarea>
+              <button id="saveBioBtn" class="pill-btn">保存简介</button>
               <div class="count-row">
                 <div><strong id="followingCount">0</strong><span>关注</span></div>
                 <div><strong id="followersCount">0</strong><span>粉丝</span></div>

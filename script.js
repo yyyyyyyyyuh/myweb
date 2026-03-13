@@ -206,7 +206,7 @@ function renderProfileData() {
   const avatar = document.getElementById('profileAvatar');
   const name = document.getElementById('profileName');
   const idText = document.getElementById('profileIdText');
-  const bioText = document.getElementById('profileBioText');
+  const bioInput = document.getElementById('profileBioInput');
   const followingCount = document.getElementById('followingCount');
   const followers = document.getElementById('followersCount');
   const favList = document.getElementById('favList');
@@ -218,7 +218,7 @@ function renderProfileData() {
     avatar.src = 'https://i.pravatar.cc/120?u=guest';
     name.textContent = '访客用户';
     idText.textContent = 'ID: --';
-    bioText.textContent = '登录后可查看完整个人中心功能。';
+    if (bioInput) bioInput.value = '登录后可查看完整个人中心功能。';
     followingCount.textContent = '0';
     followers.textContent = '0';
     favList.innerHTML = '<p>请登录后查看收藏内容</p>';
@@ -233,7 +233,7 @@ function renderProfileData() {
   avatar.src = profile.avatar || `https://i.pravatar.cc/120?u=${me.id}`;
   name.textContent = me.username;
   idText.textContent = `ID: ${me.id}`;
-  bioText.textContent = profile.bio || '这个人很神秘，什么都没有留下。';
+  if (bioInput) bioInput.value = profile.bio || '这个人很神秘，什么都没有留下。';
 
   const following = getFollowingIds(me.id);
   followingCount.textContent = String(following.length);
@@ -419,10 +419,11 @@ document.getElementById('postBtn').addEventListener('click', () => {
   renderProfileData();
 });
 
-document.getElementById('registerBtn').addEventListener('click', () => {
+const registerBtn = document.getElementById('registerBtn');
+if (registerBtn) registerBtn.addEventListener('click', () => {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value.trim();
-  const msg = document.getElementById('authMessage');
+  const msg = document.getElementById('authMessage') || { textContent: '' };
   if (!username || !password) return (msg.textContent = '请输入手机号/用户名和密码');
   if (state.users.find((u) => u.username === username)) return (msg.textContent = '用户已存在');
   const id = `U${Math.floor(1000 + Math.random() * 9000)}`;
@@ -433,10 +434,11 @@ document.getElementById('registerBtn').addEventListener('click', () => {
   msg.textContent = `注册成功，你的用户ID是 ${id}`;
 });
 
-document.getElementById('loginBtn').addEventListener('click', () => {
+const loginBtn = document.getElementById('loginBtn');
+if (loginBtn) loginBtn.addEventListener('click', () => {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value.trim();
-  const msg = document.getElementById('authMessage');
+  const msg = document.getElementById('authMessage') || { textContent: '' };
   const user = state.users.find((u) => u.username === username && u.password === password);
   if (!user) return (msg.textContent = '登录失败，请检查账号或密码');
   state.user = { id: user.id, username: user.username };
@@ -447,10 +449,12 @@ document.getElementById('loginBtn').addEventListener('click', () => {
   switchTab('profile');
 });
 
-document.getElementById('logoutBtn').addEventListener('click', () => {
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) logoutBtn.addEventListener('click', () => {
   state.user = null;
   localStorage.removeItem('rehabUser');
-  document.getElementById('authMessage').textContent = '已退出登录';
+  const msg = document.getElementById('authMessage');
+  if (msg) msg.textContent = '已退出登录';
   syncUserUI();
   renderProfileData();
 });
@@ -461,15 +465,18 @@ document.body.addEventListener('click', (e) => {
   if (e.target.classList.contains('dm-open-btn')) openDmWith(e.target.dataset.uid);
 });
 
-document.getElementById('openFriendSearch').addEventListener('click', () => {
+const openFriendSearchBtn = document.getElementById('openFriendSearch');
+if (openFriendSearchBtn) openFriendSearchBtn.addEventListener('click', () => {
   document.getElementById('friendSearchBox').classList.toggle('hidden');
 });
 
-document.getElementById('friendSearchBtn').addEventListener('click', () => {
+const friendSearchBtn = document.getElementById('friendSearchBtn');
+if (friendSearchBtn) friendSearchBtn.addEventListener('click', () => {
   renderFriendResults(document.getElementById('friendKeyword').value);
 });
 
-document.getElementById('saveAvatarBtn').addEventListener('click', () => {
+const saveAvatarBtn = document.getElementById('saveAvatarBtn');
+if (saveAvatarBtn) saveAvatarBtn.addEventListener('click', () => {
   const me = currentUser();
   if (!me) return;
   const url = document.getElementById('avatarUrlInput').value.trim();
@@ -479,9 +486,21 @@ document.getElementById('saveAvatarBtn').addEventListener('click', () => {
   renderProfileData();
 });
 
-document.getElementById('dmTarget').addEventListener('change', renderDmThread);
+const dmTargetEl = document.getElementById('dmTarget');
+if (dmTargetEl) dmTargetEl.addEventListener('change', renderDmThread);
 
-document.getElementById('dmSendBtn').addEventListener('click', () => {
+const saveBioBtn = document.getElementById('saveBioBtn');
+if (saveBioBtn) saveBioBtn.addEventListener('click', () => {
+  const me = currentUser();
+  if (!me) return;
+  const bio = document.getElementById('profileBioInput').value.trim();
+  state.profiles[me.id] = { ...(state.profiles[me.id] || {}), bio: bio || '这个人很神秘，什么都没有留下。' };
+  save('rehabProfiles', state.profiles);
+  renderProfileData();
+});
+
+const dmSendBtn = document.getElementById('dmSendBtn');
+if (dmSendBtn) dmSendBtn.addEventListener('click', () => {
   const me = currentUser();
   const targetId = document.getElementById('dmTarget').value;
   const text = document.getElementById('dmInput').value.trim();

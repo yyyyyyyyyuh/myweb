@@ -335,3 +335,5 @@ h3 { margin: 0 0 8px; }
   .profile-layout { grid-template-columns: 1fr; }
   .dm-controls { grid-template-columns: 1fr; }
 }
+
+.bio-input { min-height: 86px; }
