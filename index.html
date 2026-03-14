@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>悦动无障碍</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar card">
+        <div class="brand">🤍 悦动无障碍</div>
+        <nav class="menu">
+          <button class="menu-item active" data-tab="home">首页</button>
+          <button class="menu-item" data-tab="knowledge">健康知识</button>
+          <button class="menu-item" data-tab="sports">体育资讯</button>
+          <button class="menu-item" data-tab="videos">视频专区</button>
+          <button class="menu-item" data-tab="community">互助社区</button>
+          <button class="menu-item" data-tab="therapy">理疗服务</button>
+          <button class="menu-item" data-tab="shop">优选商城</button>
+          <button class="menu-item" data-tab="profile">个人中心</button>
+        </nav>
+        <div class="profile-mini">
+          <h4 id="sideName">访客用户</h4>
+          <p id="sideState">未登录</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar card">
+          <div>
+            <h1>你好，<span id="welcomeName">朋友</span> 👋 <span class="health-score">今日健康分 <b id="healthScoreValue">40</b></span></h1>
+            <p id="greetingText">欢迎来到悦动无障碍</p>
+          </div>
+          <div class="search-row">
+            <input id="search" type="text" placeholder="搜索资讯 / 视频 / 理疗师" />
+            <button id="searchBtn" class="pill-btn">搜索</button>
+          </div>
+        </header>
+
+        <section id="home" class="tab-content active grid-home">
+          <article class="card panel-lg calendar-panel">
+            <div class="panel-head">
+              <h2>训练日历</h2>
+              <span id="todayDate"></span>
+            </div>
+            <p class="notice">点击“今日打卡”后，当天日期会标记为黄色。</p>
+            <div class="calendar-week" id="calendarWeek"></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="calendar-legend">
+              <span><i class="dot today"></i>今天</span>
+              <span><i class="dot done"></i>已打卡</span>
+            </div>
+          </article>
+
+          <article class="card panel-md checkin-panel">
+            <div class="panel-head">
+              <h2>今日训练打卡</h2>
+              <button id="checkinBtn" class="pill-btn">今日打卡</button>
+            </div>
+            <div class="checkin-form">
+              <input id="checkinMinutes" type="number" min="1" max="300" placeholder="训练时长（分钟）" />
+              <input id="checkinType" placeholder="训练类型（如：核心训练）" />
+              <select id="fatigueLevel">
+                <option value="1">很轻松</option>
+                <option value="1.5">有点累</option>
+                <option value="2">很累</option>
+              </select>
+            </div>
+            <p id="checkinMsg" class="notice"></p>
+            <h2>今日康复计划</h2>
+            <div class="plan-grid" id="planGrid"></div>
+          </article>
+
+        </section>
+
+        <section id="knowledge" class="tab-content card">
+          <h2>健康知识</h2>
+          <div id="knowledgeList" class="simple-list"></div>
+        </section>
+
+        <section id="sports" class="tab-content card">
+          <h2>体育资讯</h2>
+          <div id="sportsList" class="simple-list"></div>
+        </section>
+
+        <section id="videos" class="tab-content card">
+          <div class="panel-head">
+            <h2>视频专区</h2>
+            <span>连续观看超 2 小时自动休息提醒</span>
+          </div>
+          <div class="panel-head compact">
+            <button id="locateBtn" class="pill-btn">附近推荐</button>
+            <p id="locationHint">点击后根据定位推荐周边视频资源。</p>
+          </div>
+          <div id="nearbyVideos" class="video-list"></div>
+          <video id="rehabVideo" controls width="100%" poster="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200">
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+          </video>
+          <p id="watchTimer">已连续观看：0 分钟</p>
+        </section>
+
+        <section id="assistant" class="tab-content card">
+          <h2>AI智能助手</h2>
+          <p id="careText" class="notice"></p>
+          <div class="assistant-box">
+            <textarea id="aiInput" placeholder="输入你的身体状态和目标，例如：下肢力量弱、希望居家训练"></textarea>
+            <button id="aiAsk" class="pill-btn">获取建议</button>
+          </div>
+          <button id="generatePlanBtn" class="pill-btn">生成个性化康复计划</button>
+          <div id="aiResponse" class="ai-response"></div>
+          <div id="aiPlan" class="ai-response"></div>
+        </section>
+
+        <section id="community" class="tab-content card">
+          <h2>互助社区</h2>
+          <div class="post-editor">
+            <textarea id="postInput" placeholder="发布话题：分享经验 / 求助问题 / 暖心故事"></textarea>
+            <button id="postBtn" class="pill-btn">发布话题</button>
+          </div>
+          <div id="postList"></div>
+        </section>
+
+
+        <section id="therapy" class="tab-content card">
+          <div class="panel-head">
+            <h2>理疗服务</h2>
+            <span>选择省市后匹配上门理疗师</span>
+          </div>
+          <div class="therapy-filters">
+            <select id="provinceSelect"></select>
+            <select id="citySelect"></select>
+            <button id="searchTherapistBtn" class="pill-btn">查找理疗师</button>
+          </div>
+          <div id="therapistList" class="therapist-list"></div>
+        </section>
+
+        <section id="shop" class="tab-content card">
+          <div class="panel-head">
+            <h2>优选商城</h2>
+            <span>价格更优 · 质量可控 · 一站式购买</span>
+          </div>
+          <div id="shopCategory" class="shop-category"></div>
+          <div id="shopWaterfall" class="shop-waterfall"></div>
+        </section>
+
+        <section id="profile" class="tab-content card">
+          <div id="profileAuthBlock" class="profile-auth card inset">
+            <h2>个人中心</h2>
+            <div class="auth-grid">
+              <input id="username" placeholder="输入手机号/用户名" />
+              <input id="password" placeholder="输入密码" type="password" />
+              <div class="auth-actions">
+                <button id="registerBtn" class="pill-btn">注册</button>
+                <button id="loginBtn" class="pill-btn">登录</button>
+                <button id="logoutBtn" class="pill-btn ghost">退出登录</button>
+              </div>
+              <p id="authMessage"></p>
+            </div>
+          </div>
+
+          <div class="profile-layout">
+            <aside class="card inset profile-side">
+              <img id="profileAvatar" class="profile-avatar" src="" alt="avatar" />
+              <h3 id="profileName">访客用户</h3>
+              <p id="profileIdText">ID: --</p>
+              <textarea id="profileBioInput" class="bio-input" placeholder="编辑个人简介"></textarea>
+              <button id="saveBioBtn" class="pill-btn">保存简介</button>
+              <div class="count-row">
+                <div><strong id="followingCount">0</strong><span>关注</span></div>
+                <div><strong id="followersCount">0</strong><span>粉丝</span></div>
+              </div>
+              <div class="avatar-edit">
+                <input id="avatarUrlInput" placeholder="输入头像URL后点击保存" />
+                <button id="saveAvatarBtn" class="pill-btn">保存头像</button>
+                <button id="logoutBtn2" class="pill-btn ghost">退出登录</button>
+              </div>
+            </aside>
+
+            <div class="profile-main">
+              <article class="card inset">
+                <div class="panel-head">
+                  <h3>添加好友</h3>
+                  <button id="openFriendSearch" class="icon-btn" aria-label="添加好友">➕</button>
+                </div>
+                <div id="friendSearchBox" class="friend-search hidden">
+                  <input id="friendKeyword" placeholder="输入用户ID或用户名" />
+                  <button id="friendSearchBtn" class="pill-btn">搜索</button>
+                </div>
+                <div id="friendResultList"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>我的发布</h3>
+                <div id="publishedList"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>收藏内容（帖子/资讯/视频）</h3>
+                <div id="favList"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>历史记录</h3>
+                <div id="historyList"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>私信（与已关注用户）</h3>
+                <div class="dm-controls">
+                  <select id="dmTarget"></select>
+                  <input id="dmInput" placeholder="输入私信内容" />
+                  <button id="dmSendBtn" class="pill-btn">发送</button>
+                </div>
+                <div id="dmThread" class="dm-thread"></div>
+              </article>
+
+              <article class="card inset">
+                <h3>设置</h3>
+                <div class="setting-inline">
+                  <input id="noDisturb" type="checkbox" />
+                  <span>开启免打扰（22:00-07:00） 单次观看提醒阈值（分钟）</span>
+                  <input id="limitMinutes" type="number" min="30" max="240" value="120" disabled />
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="restModal" class="modal hidden">
+      <div class="modal-card">
+        <h3>温馨提醒 💛</h3>
+        <p>你已连续观看视频超过设定时长，建议休息 10 分钟并活动肩颈。</p>
+        <button id="closeRestModal" class="pill-btn">我知道了</button>
+      </div>
+    </div>
+
+
+    <button id="aiFloatBtn" class="ai-float-btn" aria-label="打开AI助手">AI助手</button>
+
+    <div id="aiFloatOverlay" class="ai-float-overlay hidden" aria-hidden="true">
+      <div id="aiFloatPanel" class="ai-float-panel" role="dialog" aria-label="悬浮AI对话框">
+        <div id="aiFloatDrag" class="ai-float-head">
+          <strong>AI康复助手</strong>
+          <button id="closeAiFloat" class="mini-close" aria-label="关闭">✕</button>
+        </div>
+        <div id="aiFloatMessages" class="ai-float-messages">
+          <div class="msg ai">你好，我是你的康复助手。告诉我你的身体情况，我来给你建议。</div>
+        </div>
+        <div class="ai-float-input">
+          <textarea id="aiFloatInput" placeholder="例如：我今天腿部酸痛，能做哪些低强度训练？"></textarea>
+          <button id="aiFloatSend" class="pill-btn">发送</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
