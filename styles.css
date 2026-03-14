@@ -49,7 +49,7 @@ body {
 .profile-mini p { color: var(--muted); font-size: 13px; }
 
 .main { display: grid; gap: 16px; }
-.topbar { padding: 20px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; min-height: 150px; }
+.topbar { padding: 20px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; height: 190px; }
 .topbar h1 { margin: 0; }
 .topbar p { margin: 4px 0 0; color: var(--muted); }
 .health-score {
@@ -144,7 +144,7 @@ h3 { margin: 0 0 8px; }
 @media (max-width: 1080px) {
   .app-shell { grid-template-columns: 1fr; }
   .grid-home { grid-template-columns: 1fr; }
-  .topbar { flex-direction: column; align-items: flex-start; }
+  .topbar { flex-direction: column; align-items: flex-start; height: auto; }
 }
 
 .ai-float-btn {
