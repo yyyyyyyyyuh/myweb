@@ -35,7 +35,7 @@
       <main class="main">
         <header class="topbar card">
           <div>
-            <h1>你好，<span id="welcomeName">朋友</span> 👋 <span class="health-score">今日健康分 <b id="healthScoreValue">40</b>/100</span></h1>
+            <h1>你好，<span id="welcomeName">朋友</span> 👋 <span class="health-score">今日健康分 <b id="healthScoreValue">40</b></span></h1>
             <p id="greetingText">欢迎来到悦动无障碍</p>
           </div>
           <div class="search-row">
@@ -60,16 +60,18 @@
           </article>
 
           <article class="card panel-md checkin-panel">
-            <h2>今日训练打卡</h2>
+            <div class="panel-head">
+              <h2>今日训练打卡</h2>
+              <button id="checkinBtn" class="pill-btn">今日打卡</button>
+            </div>
             <div class="checkin-form">
               <input id="checkinMinutes" type="number" min="1" max="300" placeholder="训练时长（分钟）" />
               <input id="checkinType" placeholder="训练类型（如：核心训练）" />
               <select id="fatigueLevel">
-                <option value="1">很轻松（×1）</option>
-                <option value="1.5">有点累（×1.5）</option>
-                <option value="2">很累（×2）</option>
+                <option value="1">很轻松</option>
+                <option value="1.5">有点累</option>
+                <option value="2">很累</option>
               </select>
-              <button id="checkinBtn" class="pill-btn">今日打卡</button>
             </div>
             <p id="checkinMsg" class="notice"></p>
             <h2>今日康复计划</h2>
