@@ -773,34 +773,91 @@ setInterval(() => {
 const aiFloatBtn = document.getElementById('aiFloatBtn');
 const aiFloatOverlay = document.getElementById('aiFloatOverlay');
 const aiFloatPanel = document.getElementById('aiFloatPanel');
-const aiFloatDrag = document.getElementById('aiFloatDrag');
 const closeAiFloat = document.getElementById('closeAiFloat');
-const aiFloatInput = document.getElementById('aiFloatInput');
-const aiFloatSend = document.getElementById('aiFloatSend');
-const aiFloatMessages = document.getElementById('aiFloatMessages');
+const closeMapPopupBtn = document.getElementById('closeMapPopup');
+const mapPopup = document.getElementById('mapPopup');
+const mapPopupTitle = document.getElementById('mapPopupTitle');
+const mapPopupBody = document.getElementById('mapPopupBody');
 
-function addFloatMessage(role, text) {
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
-  div.textContent = text;
-  aiFloatMessages.appendChild(div);
-  aiFloatMessages.scrollTop = aiFloatMessages.scrollHeight;
-}
-
-function replyByPrompt(q) {
-  if (q.includes('酸痛') || q.includes('疼')) return '建议今天以低强度拉伸和热敷为主，训练控制在20分钟内，疼痛加重请暂停并咨询理疗师。';
-  if (q.includes('计划')) return '我为你建议：每周5天轻中度训练+2天恢复，先从核心稳定、关节活动度开始。';
-  return '已收到你的问题。建议从低强度开始，关注心率、疼痛等级和睡眠，并按周复盘调整。';
-}
+const mapBuildingContent = {
+  board: {
+    title: '资讯公告栏',
+    body: `
+      <ul>
+        <li>本周推荐阅读：肩颈放松、居家核心稳定、春季关节保护。</li>
+        <li>无障碍体育资讯：社区轮椅健身课本周五开放报名。</li>
+        <li>政策提示：多地辅助器具补贴已开启线上申领。</li>
+      </ul>
+      <div class="map-popup-tags"><span>政策科普</span><span>健康知识</span><span>体育资讯</span></div>
+    `,
+  },
+  cinema: {
+    title: '影音放映屋',
+    body: `
+      <ul>
+        <li>推荐视频 1：15 分钟肩背舒展课。</li>
+        <li>推荐视频 2：20 分钟轻快稳定训练。</li>
+        <li>推荐视频 3：居家低冲击有氧跟练。</li>
+      </ul>
+      <div class="map-popup-tags"><span>附近推荐</span><span>官方视频</span><span>学习积分</span></div>
+    `,
+  },
+  practice: {
+    title: '今日康复小练习',
+    body: `
+      <ul>
+        <li>15 分钟肩周拉伸</li>
+        <li>20 分钟核心稳定</li>
+        <li>10 分钟呼吸放松 + 姿态觉察</li>
+      </ul>
+      <div class="map-popup-tags"><span>生成我的计划</span><span>动作视频</span><span>康复知识</span></div>
+    `,
+  },
+  home: {
+    title: '我的屋子',
+    body: `
+      <ul>
+        <li>查看今日打卡、连续训练天数与成长记录。</li>
+        <li>回看已收藏的资讯、视频与社区互动内容。</li>
+        <li>进入个人中心同步更新头像、简介和私信。</li>
+      </ul>
+      <div class="map-popup-tags"><span>我的记录</span><span>训练日历</span><span>收藏历史</span></div>
+    `,
+  },
+  communityTree: {
+    title: '互助长椅 / 树下角落',
+    body: `
+      <ul>
+        <li>看看别人今天的训练近况和暖心分享。</li>
+        <li>发布你的康复心得、求助问题和鼓励留言。</li>
+        <li>和关注的朋友发起私信，一起坚持。</li>
+      </ul>
+      <div class="map-popup-tags"><span>互助社区</span><span>暖心陪伴</span><span>发帖交流</span></div>
+    `,
+  },
+};
 
 function openAiFloat() {
   aiFloatOverlay.classList.remove('hidden');
   aiFloatOverlay.setAttribute('aria-hidden', 'false');
+  closeMapPopup();
 }
 
 function closeAiFloatPanel() {
   aiFloatOverlay.classList.add('hidden');
   aiFloatOverlay.setAttribute('aria-hidden', 'true');
+}
+
+function openMapPopup(buildingKey) {
+  const card = mapBuildingContent[buildingKey];
+  if (!card || !mapPopup || !mapPopupTitle || !mapPopupBody) return;
+  mapPopupTitle.textContent = card.title;
+  mapPopupBody.innerHTML = card.body;
+  mapPopup.classList.remove('hidden');
+}
+
+function closeMapPopup() {
+  mapPopup?.classList.add('hidden');
 }
 
 closeAiFloat.addEventListener('click', (e) => {
@@ -812,65 +869,20 @@ aiFloatOverlay.addEventListener('click', (e) => {
   if (e.target === aiFloatOverlay) closeAiFloatPanel();
 });
 
-aiFloatSend.addEventListener('click', () => {
-  const q = aiFloatInput.value.trim();
-  if (!q) return;
-  addFloatMessage('user', q);
-  addFloatMessage('ai', replyByPrompt(q));
-  aiFloatInput.value = '';
+closeMapPopupBtn?.addEventListener('click', closeMapPopup);
+aiFloatBtn?.addEventListener('click', openAiFloat);
+
+document.querySelectorAll('.map-building').forEach((building) => {
+  building.addEventListener('click', () => openMapPopup(building.dataset.building));
 });
 
-function makeDraggable(handle, target, mode = 'free') {
-  let dragging = false;
-  let moved = false;
-  let startX = 0;
-  let startY = 0;
-  let baseLeft = 0;
-  let baseTop = 0;
-
-  const onMove = (e) => {
-    if (!dragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-
-    let left = baseLeft + dx;
-    let top = baseTop + dy;
-    const maxLeft = window.innerWidth - target.offsetWidth;
-    const maxTop = window.innerHeight - target.offsetHeight;
-    left = Math.min(Math.max(0, left), Math.max(0, maxLeft));
-    top = Math.min(Math.max(0, top), Math.max(0, maxTop));
-
-    target.style.left = `${left}px`;
-    target.style.top = `${top}px`;
-    target.style.right = 'auto';
-    target.style.bottom = 'auto';
-  };
-
-  const onUp = () => {
-    dragging = false;
-    document.removeEventListener('pointermove', onMove);
-    document.removeEventListener('pointerup', onUp);
-    if (mode === 'button' && !moved) openAiFloat();
-  };
-
-  handle.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.mini-close')) return;
-    dragging = true;
-    moved = false;
-    startX = e.clientX;
-    startY = e.clientY;
-    const rect = target.getBoundingClientRect();
-    baseLeft = rect.left;
-    baseTop = rect.top;
-    target.setPointerCapture?.(e.pointerId);
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
+document.querySelectorAll('.map-jump-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const target = document.querySelector(`.map-building[data-building="${btn.dataset.targetBuilding}"]`);
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    if (btn.dataset.targetBuilding) openMapPopup(btn.dataset.targetBuilding);
   });
-}
-
-makeDraggable(aiFloatBtn, aiFloatBtn, 'button');
-makeDraggable(aiFloatDrag, aiFloatPanel, 'free');
+});
 
 function init() {
   ensureUserModel();

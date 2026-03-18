@@ -244,20 +244,107 @@
     </div>
 
 
-    <button id="aiFloatBtn" class="ai-float-btn" aria-label="打开AI助手">AI助手</button>
+    <button id="aiFloatBtn" class="ai-float-btn girl-float-btn" aria-label="打开AI社区地图">
+      <span class="girl-avatar" aria-hidden="true">
+        <span class="girl-hair"></span>
+        <span class="girl-face"></span>
+        <span class="girl-dress"></span>
+        <span class="girl-arm left"></span>
+        <span class="girl-arm right"></span>
+        <span class="girl-leg left"></span>
+        <span class="girl-leg right"></span>
+      </span>
+      <span class="girl-float-label">AI社区</span>
+    </button>
 
     <div id="aiFloatOverlay" class="ai-float-overlay hidden" aria-hidden="true">
-      <div id="aiFloatPanel" class="ai-float-panel" role="dialog" aria-label="悬浮AI对话框">
-        <div id="aiFloatDrag" class="ai-float-head">
-          <strong>AI康复助手</strong>
-          <button id="closeAiFloat" class="mini-close" aria-label="关闭">✕</button>
-        </div>
-        <div id="aiFloatMessages" class="ai-float-messages">
-          <div class="msg ai">你好，我是你的康复助手。告诉我你的身体情况，我来给你建议。</div>
-        </div>
-        <div class="ai-float-input">
-          <textarea id="aiFloatInput" placeholder="例如：我今天腿部酸痛，能做哪些低强度训练？"></textarea>
-          <button id="aiFloatSend" class="pill-btn">发送</button>
+      <div id="aiFloatPanel" class="ai-scroll-map" role="dialog" aria-label="AI社区手卷地图">
+        <button id="closeAiFloat" class="scroll-close" aria-label="关闭">✕</button>
+
+        <div class="scroll-shell">
+          <span class="scroll-roll left"></span>
+          <span class="scroll-roll right"></span>
+
+          <div class="scroll-inner">
+            <aside class="map-note left">
+              <h4>大家的近况</h4>
+              <ul>
+                <li>第一次坚持一周！</li>
+                <li>今天有人和我一样累吗？</li>
+                <li>康复经验分享</li>
+                <li>今天慢不慢了</li>
+              </ul>
+              <div class="note-actions">
+                <button class="pill-btn map-mini-btn">看看大家</button>
+                <button class="pill-btn ghost map-mini-btn">让我帮你写</button>
+              </div>
+            </aside>
+
+            <section class="map-intro">
+              <p class="map-tag">资讯公告栏</p>
+              <h3>AI 社区公告</h3>
+              <p>这里是你的专属康复漫游地图。你可以自由探索，也可以让小助手带你找到最适合今天状态的练习、社区和记录角落。</p>
+              <div class="note-actions">
+                <button class="pill-btn map-jump-btn" data-target-building="practice">带我逛逛</button>
+                <button class="pill-btn ghost map-jump-btn" data-target-building="communityTree">随便看看</button>
+              </div>
+            </section>
+
+            <div class="map-signpost">
+              <span>资讯公告栏</span>
+              <span>影视放映屋</span>
+              <span>康复小馆</span>
+              <span>我的屋子</span>
+            </div>
+
+            <div class="map-girl-center" aria-hidden="true">
+              <span class="girl-avatar large">
+                <span class="girl-hair"></span>
+                <span class="girl-face"></span>
+                <span class="girl-dress"></span>
+                <span class="girl-arm left"></span>
+                <span class="girl-arm right"></span>
+                <span class="girl-leg left"></span>
+                <span class="girl-leg right"></span>
+              </span>
+              <strong>核心广场</strong>
+            </div>
+
+            <button class="map-building board" data-building="board">
+              <span class="building-title">资讯公告栏</span>
+              <span class="building-sub">体育资讯 / 政策科普</span>
+            </button>
+
+            <button class="map-building cinema" data-building="cinema">
+              <span class="building-title">影音放映屋</span>
+              <span class="building-sub">精选课程 / 视频推荐</span>
+            </button>
+
+            <button class="map-building rehab" data-building="practice">
+              <span class="building-title">康复小馆</span>
+              <span class="building-sub">今日练习 / 生成计划</span>
+            </button>
+
+            <button class="map-building home" data-building="home">
+              <span class="building-title">我的屋子</span>
+              <span class="building-sub">成长记录 / 打卡回顾</span>
+            </button>
+
+            <button class="map-building tree" data-building="communityTree">
+              <span class="building-title">互助长椅 / 树下角落</span>
+              <span class="building-sub">暖心交流 / 求助陪伴</span>
+            </button>
+
+            <div id="mapPopup" class="map-popup hidden">
+              <div class="map-popup-card">
+                <div class="panel-head">
+                  <h3 id="mapPopupTitle">今日康复小练习</h3>
+                  <button id="closeMapPopup" class="mini-close" aria-label="关闭">✕</button>
+                </div>
+                <div id="mapPopupBody" class="map-popup-body"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
