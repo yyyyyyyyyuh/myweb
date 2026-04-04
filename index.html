@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>动作检测训练 - 深蹲</title>
+    <title>动作检测训练 - 靠墙下蹲</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="page">
       <header class="page-header">
         <h1>动作检测训练</h1>
-        <p>基于 MediaPipe Pose Landmarker 的实时深蹲检测</p>
+        <p>基于 MediaPipe Pose Landmarker 的实时靠墙下蹲检测</p>
       </header>
 
       <section class="layout">
@@ -18,12 +18,12 @@
           <div class="video-wrapper">
             <video id="video" autoplay playsinline muted></video>
             <canvas id="overlay"></canvas>
-            <div id="videoHint" class="video-hint">点击“开启摄像头”开始训练</div>
+            <div id="videoHint" class="video-hint">点击“开始检测”自动开启摄像头</div>
           </div>
 
           <div class="controls">
             <button id="btnEnableCamera">开启摄像头</button>
-            <button id="btnStart" disabled>开始检测</button>
+            <button id="btnStart">开始检测</button>
             <button id="btnStop" disabled>停止检测</button>
           </div>
         </section>
@@ -31,20 +31,20 @@
         <aside class="info-panel">
           <div class="card">
             <div class="label">当前动作名称</div>
-            <div class="value">深蹲</div>
-          </div>
-
-          <div class="card counter-card">
-            <div class="label">当前计数</div>
-            <div class="counter" id="counter">0</div>
+            <div class="value">靠墙下蹲</div>
           </div>
 
           <div class="card">
-            <div class="label">当前状态</div>
-            <div class="value" id="statusText">站立</div>
+            <div class="label">当前动作状态</div>
+            <div class="value" id="statusText">未开始</div>
           </div>
 
-          <div class="tip-box" id="tipText">提示：请先开启摄像头</div>
+          <div class="card counter-card">
+            <div class="label">当前保持时间</div>
+            <div class="counter" id="holdTime">0.0s</div>
+          </div>
+
+          <div class="tip-box" id="tipText">提示：请点击“开始检测”</div>
         </aside>
       </section>
     </main>

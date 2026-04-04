@@ -1,7 +1,7 @@
 import {
+  DrawingUtils,
   FilesetResolver,
   PoseLandmarker,
-  DrawingUtils,
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.15";
 
 const video = document.getElementById("video");
@@ -12,9 +12,9 @@ const btnEnableCamera = document.getElementById("btnEnableCamera");
 const btnStart = document.getElementById("btnStart");
 const btnStop = document.getElementById("btnStop");
 
-const counterEl = document.getElementById("counter");
 const statusEl = document.getElementById("statusText");
 const tipEl = document.getElementById("tipText");
+const holdTimeEl = document.getElementById("holdTime");
 const videoHintEl = document.getElementById("videoHint");
 
 let poseLandmarker = null;
@@ -24,25 +24,22 @@ let detecting = false;
 let animationId = null;
 let lastVideoTime = -1;
 
-const squatState = {
-  phase: "up", // up / down
-  count: 0,
-  minKneeAngleInRep: 180,
+const holdTimer = {
+  running: false,
+  startMs: 0,
+  elapsedMs: 0,
 };
 
 const THRESHOLDS = {
-  upAngle: 160,
-  downAngle: 95,
   validVisibility: 0.55,
-  torsoLeanWarnDeg: 28,
-  deepEnoughAngle: 100,
-  smoothWindow: 5,
+  squatTooShallowKnee: 115,
+  kneeMin: 75,
+  kneeMax: 110,
+  torsoVerticalMax: 15,
+  thighHorizontalMaxDiff: 0.08,
+  lrSymmetryMaxDiff: 0.06,
 };
 
-// 用移动平均降低抖动，避免重复计数
-const kneeAngleHistory = [];
-
-// 骨架连接（MediaPipe Pose 33点）
 const POSE_CONNECTIONS = [
   [11, 13], [13, 15], [12, 14], [14, 16],
   [11, 12], [23, 24], [11, 23], [12, 24],
@@ -56,8 +53,16 @@ function setTip(text, type = "warn") {
   tipEl.classList.add(type);
 }
 
+function setStatus(text) {
+  statusEl.textContent = text;
+}
+
+function updateHoldTimeText(ms) {
+  holdTimeEl.textContent = `${(ms / 1000).toFixed(1)}s`;
+}
+
 /**
- * 计算由 A-B-C 三点构成的夹角（单位：度）
+ * 计算 A-B-C 夹角（度）
  */
 function calculateAngle(a, b, c) {
   const ab = { x: a.x - b.x, y: a.y - b.y };
@@ -72,7 +77,7 @@ function calculateAngle(a, b, c) {
 }
 
 /**
- * 姿态识别前的完整性检查：是否有足够关键点可用
+ * 是否检测到完整人体关键点
  */
 function hasValidPose(landmarks) {
   const requiredIndexes = [11, 12, 23, 24, 25, 26, 27, 28];
@@ -82,88 +87,121 @@ function hasValidPose(landmarks) {
 }
 
 /**
- * 计算用于深蹲判断的特征：左右膝平均角度、躯干前倾角
+ * 提取靠墙下蹲分析特征
  */
-function extractSquatFeatures(landmarks) {
-  const leftKnee = calculateAngle(landmarks[23], landmarks[25], landmarks[27]);
-  const rightKnee = calculateAngle(landmarks[24], landmarks[26], landmarks[28]);
-  const avgKnee = (leftKnee + rightKnee) / 2;
+function extractWallSitFeatures(landmarks) {
+  const leftKneeAngle = calculateAngle(landmarks[23], landmarks[25], landmarks[27]);
+  const rightKneeAngle = calculateAngle(landmarks[24], landmarks[26], landmarks[28]);
+  const avgKneeAngle = (leftKneeAngle + rightKneeAngle) / 2;
 
-  // 计算躯干相对竖直方向偏离角（越大表示前倾越多）
+  const leftShoulder = landmarks[11];
+  const rightShoulder = landmarks[12];
+  const leftHip = landmarks[23];
+  const rightHip = landmarks[24];
+  const leftKnee = landmarks[25];
+  const rightKnee = landmarks[26];
+
+  // 躯干竖直程度（肩中点到髋中点与竖直方向夹角）
   const shoulderMid = {
-    x: (landmarks[11].x + landmarks[12].x) / 2,
-    y: (landmarks[11].y + landmarks[12].y) / 2,
+    x: (leftShoulder.x + rightShoulder.x) / 2,
+    y: (leftShoulder.y + rightShoulder.y) / 2,
   };
   const hipMid = {
-    x: (landmarks[23].x + landmarks[24].x) / 2,
-    y: (landmarks[23].y + landmarks[24].y) / 2,
+    x: (leftHip.x + rightHip.x) / 2,
+    y: (leftHip.y + rightHip.y) / 2,
   };
 
-  const torsoVec = {
-    x: shoulderMid.x - hipMid.x,
-    y: shoulderMid.y - hipMid.y,
-  };
+  const torsoVec = { x: shoulderMid.x - hipMid.x, y: shoulderMid.y - hipMid.y };
   const vertical = { x: 0, y: -1 };
   const dot = torsoVec.x * vertical.x + torsoVec.y * vertical.y;
   const magTorso = Math.hypot(torsoVec.x, torsoVec.y);
-  const torsoLean = magTorso
+  const torsoLeanDeg = magTorso
     ? Math.acos(Math.min(1, Math.max(-1, dot / magTorso))) * (180 / Math.PI)
     : 0;
 
-  return { avgKnee, torsoLean };
+  // 大腿水平程度（髋与膝 y 值差）
+  const leftThighDiff = Math.abs(leftHip.y - leftKnee.y);
+  const rightThighDiff = Math.abs(rightHip.y - rightKnee.y);
+  const avgThighHorizontalDiff = (leftThighDiff + rightThighDiff) / 2;
+
+  // 左右对称（膝与髋高度差）
+  const kneeHeightDiff = Math.abs(leftKnee.y - rightKnee.y);
+  const hipHeightDiff = Math.abs(leftHip.y - rightHip.y);
+
+  return {
+    leftKneeAngle,
+    rightKneeAngle,
+    avgKneeAngle,
+    torsoLeanDeg,
+    avgThighHorizontalDiff,
+    kneeHeightDiff,
+    hipHeightDiff,
+  };
 }
 
 /**
- * 深蹲计数状态机：up -> down -> up 计数 +1
+ * 动作标准判定 + 纠错提示
  */
-function updateSquatCounter(smoothedKneeAngle) {
-  if (squatState.phase === "up") {
-    if (smoothedKneeAngle < THRESHOLDS.downAngle) {
-      squatState.phase = "down";
-      squatState.minKneeAngleInRep = smoothedKneeAngle;
+function evaluateWallSit(features) {
+  const {
+    leftKneeAngle,
+    rightKneeAngle,
+    avgKneeAngle,
+    torsoLeanDeg,
+    avgThighHorizontalDiff,
+    kneeHeightDiff,
+    hipHeightDiff,
+  } = features;
+
+  if (avgKneeAngle > THRESHOLDS.squatTooShallowKnee) {
+    return { ok: false, tip: "蹲得不够低", status: "姿势调整中" };
+  }
+
+  if (
+    leftKneeAngle < THRESHOLDS.kneeMin ||
+    leftKneeAngle > THRESHOLDS.kneeMax ||
+    rightKneeAngle < THRESHOLDS.kneeMin ||
+    rightKneeAngle > THRESHOLDS.kneeMax
+  ) {
+    return { ok: false, tip: "膝角不合适", status: "姿势调整中" };
+  }
+
+  if (torsoLeanDeg > THRESHOLDS.torsoVerticalMax) {
+    return { ok: false, tip: "身体前倾过多", status: "姿势调整中" };
+  }
+
+  if (avgThighHorizontalDiff > THRESHOLDS.thighHorizontalMaxDiff) {
+    return { ok: false, tip: "大腿未接近水平", status: "姿势调整中" };
+  }
+
+  if (
+    kneeHeightDiff > THRESHOLDS.lrSymmetryMaxDiff ||
+    hipHeightDiff > THRESHOLDS.lrSymmetryMaxDiff
+  ) {
+    return { ok: false, tip: "左右高低不一致", status: "姿势调整中" };
+  }
+
+  return { ok: true, tip: "动作正确，请保持", status: "标准靠墙下蹲（保持中）" };
+}
+
+function updateHoldTimer(isStandardPose) {
+  const now = performance.now();
+
+  if (isStandardPose) {
+    if (!holdTimer.running) {
+      holdTimer.running = true;
+      holdTimer.startMs = now;
+      holdTimer.elapsedMs = 0;
+    } else {
+      holdTimer.elapsedMs = now - holdTimer.startMs;
     }
-  } else {
-    squatState.minKneeAngleInRep = Math.min(
-      squatState.minKneeAngleInRep,
-      smoothedKneeAngle,
-    );
-
-    if (smoothedKneeAngle > THRESHOLDS.upAngle) {
-      // 确保本次下蹲足够深，减少浅蹲误计数
-      if (squatState.minKneeAngleInRep <= THRESHOLDS.deepEnoughAngle) {
-        squatState.count += 1;
-        counterEl.textContent = String(squatState.count);
-      }
-      squatState.phase = "up";
-      squatState.minKneeAngleInRep = 180;
-    }
+  } else if (holdTimer.running) {
+    holdTimer.running = false;
   }
 
-  statusEl.textContent = squatState.phase === "up" ? "站立" : "下蹲";
+  updateHoldTimeText(holdTimer.elapsedMs);
 }
 
-/**
- * 输出纠正提示
- */
-function generateFeedback({ hasPose, avgKnee, torsoLean }) {
-  if (!hasPose) {
-    return { text: "请站在摄像头中央", type: "warn" };
-  }
-
-  if (squatState.phase === "down" && avgKnee > THRESHOLDS.deepEnoughAngle + 5) {
-    return { text: "请再下蹲一点", type: "warn" };
-  }
-
-  if (torsoLean > THRESHOLDS.torsoLeanWarnDeg) {
-    return { text: "请保持背部更直", type: "warn" };
-  }
-
-  return { text: "动作良好，请继续", type: "ok" };
-}
-
-/**
- * 绘制关键点与骨架
- */
 function drawPose(landmarks) {
   drawingUtils = drawingUtils || new DrawingUtils(ctx);
 
@@ -193,7 +231,7 @@ function drawPose(landmarks) {
 }
 
 /**
- * 封装姿态检测流程
+ * 姿态检测主流程
  */
 async function detectPoseFrame() {
   if (!detecting || !poseLandmarker || video.readyState < 2) {
@@ -210,26 +248,20 @@ async function detectPoseFrame() {
     const landmarks = result.landmarks?.[0];
     const hasPose = Boolean(landmarks && hasValidPose(landmarks));
 
-    if (hasPose) {
-      drawPose(landmarks);
-      const { avgKnee, torsoLean } = extractSquatFeatures(landmarks);
-
-      kneeAngleHistory.push(avgKnee);
-      if (kneeAngleHistory.length > THRESHOLDS.smoothWindow) {
-        kneeAngleHistory.shift();
-      }
-      const smoothedKneeAngle =
-        kneeAngleHistory.reduce((sum, value) => sum + value, 0) /
-        kneeAngleHistory.length;
-
-      updateSquatCounter(smoothedKneeAngle);
-      const feedback = generateFeedback({ hasPose, avgKnee, torsoLean });
-      setTip(feedback.text, feedback.type);
-      videoHintEl.textContent = `膝角: ${smoothedKneeAngle.toFixed(1)}° | 躯干前倾: ${torsoLean.toFixed(1)}°`;
-    } else {
-      statusEl.textContent = "站立";
+    if (!hasPose) {
+      updateHoldTimer(false);
+      setStatus("未检测到完整人体");
       setTip("请站在摄像头中央", "warn");
       videoHintEl.textContent = "未识别到完整人体";
+    } else {
+      drawPose(landmarks);
+      const features = extractWallSitFeatures(landmarks);
+      const evaluation = evaluateWallSit(features);
+
+      updateHoldTimer(evaluation.ok);
+      setStatus(evaluation.status);
+      setTip(evaluation.tip, evaluation.ok ? "ok" : "warn");
+      videoHintEl.textContent = `膝角: ${features.avgKneeAngle.toFixed(1)}° | 前倾: ${features.torsoLeanDeg.toFixed(1)}°`;
     }
   }
 
@@ -257,46 +289,52 @@ async function initPoseLandmarker() {
 async function enableCamera() {
   if (mediaStream) return;
 
-  try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 1280, height: 720 },
-      audio: false,
-    });
+  mediaStream = await navigator.mediaDevices.getUserMedia({
+    video: { width: 1280, height: 720 },
+    audio: false,
+  });
 
-    video.srcObject = mediaStream;
-    await video.play();
+  video.srcObject = mediaStream;
+  await video.play();
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    await initPoseLandmarker();
-
-    btnStart.disabled = false;
-    btnEnableCamera.disabled = true;
-    setTip("摄像头已就绪，点击“开始检测”", "ok");
-    videoHintEl.textContent = "摄像头已开启";
-  } catch (error) {
-    console.error(error);
-    setTip("无法访问摄像头，请检查浏览器权限", "warn");
-    videoHintEl.textContent = "摄像头开启失败";
-  }
+  await initPoseLandmarker();
+  btnEnableCamera.disabled = true;
+  videoHintEl.textContent = "摄像头已开启";
 }
 
-function startDetect() {
-  if (!mediaStream || !poseLandmarker) return;
+async function startDetect() {
+  try {
+    // 满足新需求：点击“开始检测”后自动开启摄像头
+    if (!mediaStream) {
+      await enableCamera();
+    }
 
-  detecting = true;
-  btnStart.disabled = true;
-  btnStop.disabled = false;
-  setTip("开始检测，请保持身体完整出现在画面中", "ok");
+    detecting = true;
+    holdTimer.running = false;
+    holdTimer.elapsedMs = 0;
+    updateHoldTimeText(0);
 
-  if (!animationId) {
-    animationId = requestAnimationFrame(detectPoseFrame);
+    btnStart.disabled = true;
+    btnStop.disabled = false;
+    setStatus("检测中");
+    setTip("请缓慢进入靠墙下蹲姿势", "ok");
+
+    if (!animationId) {
+      animationId = requestAnimationFrame(detectPoseFrame);
+    }
+  } catch (error) {
+    console.error(error);
+    setStatus("启动失败");
+    setTip("无法访问摄像头，请检查权限", "warn");
   }
 }
 
 function stopDetect() {
   detecting = false;
+  holdTimer.running = false;
+
   btnStart.disabled = false;
   btnStop.disabled = true;
 
@@ -306,10 +344,20 @@ function stopDetect() {
   }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  setStatus("已停止");
   setTip("检测已停止", "warn");
   videoHintEl.textContent = "检测已停止";
 }
 
-btnEnableCamera.addEventListener("click", enableCamera);
+btnEnableCamera.addEventListener("click", async () => {
+  try {
+    await enableCamera();
+    setTip("摄像头已就绪，可点击开始检测", "ok");
+  } catch (error) {
+    console.error(error);
+    setTip("无法访问摄像头，请检查权限", "warn");
+  }
+});
+
 btnStart.addEventListener("click", startDetect);
 btnStop.addEventListener("click", stopDetect);
